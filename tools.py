@@ -15,6 +15,8 @@ from qsprpred.data.sources.papyrus import Papyrus
 from qsprpred.models.sklearn import SklearnModel
 from qsprpred.plotting.classification import MetricsPlot
 
+from benchmark_settings import ReplicaSettings
+
 
 def get_benchmark_dataset_from_papyrus(settings, reload=False):
     data_dir = "./data"
@@ -45,7 +47,9 @@ def get_benchmark_dataset_from_papyrus(settings, reload=False):
     )
 
 
-def get_dataset(settings, target_props, reload=False):
+def get_dataset(replica: ReplicaSettings, reload=False):
+    ds = replica.data_source.getDataSet(replica.id, replica.target_props, rewrite=reload)
+    #TODO: calculate descriptors and save if needed
     ds = None
     try:
         ds = QSPRDataset(name=settings["dataset_name"], store_dir="./data", target_props=target_props)
