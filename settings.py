@@ -19,8 +19,6 @@ NAME = "ExampleBenchmark"  # name of the benchmark
 N_REPLICAS = 30  # number of repetitions per experiment
 SEED = 42  # seed for random operations (seed for all random states)
 DATA_DIR = f"./data/{NAME}"  # directory to store data
-SETTINGS_DIR = f"./data/{NAME}/settings"  # where to store settings of this benchmark
-os.makedirs(SETTINGS_DIR, exist_ok=True)
 N_PROC = 1  # number of processes to use for parallelization
 
 # data sources
@@ -59,7 +57,7 @@ MODELS = [
     SklearnModel(
         name="ExtraTreesClassifier",
         alg=ExtraTreesClassifier,
-        base_dir=f"{SETTINGS_DIR}/models"
+        base_dir=f"{DATA_DIR}/models"
     ),
     # SklearnModel(
     #     name="GaussianNB",
@@ -85,18 +83,10 @@ MODELS = [
 
 # assessors
 ASSESSORS = [
-    CrossValAssessor(scoring="roc_auc", split=prep.split) for prep in DATA_PREPS
-] + [
-    CrossValAssessor(scoring="matthews_corrcoef", split=prep.split) for prep in DATA_PREPS
-] + [
-    CrossValAssessor(scoring="recall", split=prep.split) for prep in DATA_PREPS
-] + [
-    CrossValAssessor(scoring="precision", split=prep.split) for prep in DATA_PREPS
-] + [
     TestSetAssessor(scoring="roc_auc"),
-    TestSetAssessor(scoring="matthews_corrcoef"),
-    TestSetAssessor(scoring="recall"),
-    TestSetAssessor(scoring="precision"),
+    # TestSetAssessor(scoring="matthews_corrcoef"),
+    # TestSetAssessor(scoring="recall"),
+    # TestSetAssessor(scoring="precision"),
 ]
 
 # benchmark settings
@@ -112,6 +102,6 @@ SETTINGS = Benchmark(
     assessors=ASSESSORS,
     optimizers=[],  # no hyperparameter optimization
 )
-SETTINGS.toFile(f"{SETTINGS_DIR}/{NAME}.json")
+SETTINGS.toFile(f"{DATA_DIR}/{NAME}.json")
 
 

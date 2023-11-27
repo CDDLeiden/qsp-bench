@@ -19,37 +19,30 @@ lock = Lock()
 
 def run_replica(replica: Replica):
     with lock:
+        # TODO: check main results file if replica already finished and return the data instead of rerunning
         ds = get_dataset(replica, reload=reload_data)
     if rerun or not replica.is_finished:
-        model = benchmark_replica(ds, replica)
-        replica.model = model
-        replica.is_finished = True
-    return replica, get_AVE_bias(ds, ds.targetProperties[0].name)
-
+        return (
+            benchmark_replica(ds, replica)
+            # get_AVE_bias(ds, ds.targetProperties[0].name)
+        )
 
 results = None
-results_bias = None
+# results_bias = None
 # loop over replicas in parallel
 with ProcessPoolExecutor(max_workers=N_PROC) as executor:
-    for replica, bias_summary in executor.map(
+    for model_summary in executor.map(
             run_replica,
             SETTINGS.iter_replicas()
     ):
-        replica = pd.DataFrame(
-            data={
-                "ID": replica.id,
-                "ModelName": replica.model.name,
-                "Replica": replica.toJSON(),
-            }
-        )
         if results is None:
-            results = replica
+            results = model_summary
         else:
-            results = pd.concat([results, replica])
-        if results_bias is None:
-            results_bias = bias_summary
-        else:
-            results_bias = pd.concat([results_bias, bias_summary])
+            results = pd.concat([results, model_summary])
+        # if results_bias is None:
+        #     results_bias = bias_summary
+        # else:
+        #     results_bias = pd.concat([results_bias, bias_summary])
 # save results
 results.to_csv(
     "results.tsv",
@@ -58,13 +51,13 @@ results.to_csv(
     mode="a",
     header=not os.path.exists("results.tsv")
 )
-results_bias.to_csv(
-    "results_bias.tsv",
-    sep="\t",
-    index=False,
-    mode="a",
-    header=not os.path.exists("results_bias.tsv")
-)
+# results_bias.to_csv(
+#     "results_bias.tsv",
+#     sep="\t",
+#     index=False,
+#     mode="a",
+#     header=not os.path.exists("results_bias.tsv")
+# )
 
 # plot model performance
 # df_ind = results.loc[(results.TestSet == "IND") & (results.Metric == "matthews_corrcoef")]

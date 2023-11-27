@@ -60,7 +60,7 @@ def prep_dataset(
     try:
         ds_prepped = QSPRDataset(
             name=ds_desc_name,
-            store_dir=ds.storeDir,
+            store_dir=ds.baseDir,
             target_props=replica.target_props,
             random_state=replica.random_seed
         )
@@ -68,7 +68,7 @@ def prep_dataset(
         logging.warning(f"Data set {ds_desc_name} not found. It will be created.")
         ds_prepped = QSPRDataset(
             name=ds_desc_name,
-            store_dir=ds.storeDir,
+            store_dir=ds.baseDir,
             target_props=replica.target_props,
             random_state=replica.random_seed,
             df=ds.getDF(),
@@ -94,22 +94,42 @@ def get_dataset(replica: Replica, reload=False):
         overwrite=reload,
         random_state=replica.random_seed
     )
+    if reload:
+        ds.save()
     return prep_dataset(ds, replica, reload=reload)
 
 
-def benchmark_replica(ds, replica):
-    # load model
+def benchmark_replica(ds: QSPRDataset, replica: Replica):
     model = deepcopy(replica.model)
-    model.name = f"{replica.id}_{model.name}"
+    model.name = replica.id
+    out_file = f"{model.outPrefix}_replica.json"
+    if os.path.exists(out_file):
+        return None
     model.initFromData(ds)
     model.initRandomState(replica.random_seed)
     if replica.optimizer is not None:
         replica.optimizer.optimize(model)
-        model.save()
-    if replica.assessors is not None:
-        replica.assessors(model)
-        model.save()
-    return model
+    model_path = model.save()
+    results = None
+    for assessor in replica.assessors:
+        scores = assessor(model, save=True)
+        scores = pd.DataFrame({
+            "Assessor": assessor.__class__.__name__,
+            "ScoreFunc": assessor.scoreFunc.name,
+            "Score": scores,
+        })
+        if results is None:
+            results = scores
+        else:
+            results = pd.concat([results, scores])
+    replica.is_finished = True
+    results["ModelFile"] = model_path
+    results["ModelAlg"] = f"{model.alg.__module__}.{model.alg.__name__}"
+    results["ModelParams"] = model.parameters
+    results["ReplicaID"] = replica.id
+    # results["ReplicaFile"] = replica.toFile(out_file)
+    results["ReplicaIsFinished"] = replica.is_finished
+    return results
 
 
 def get_random_string():
