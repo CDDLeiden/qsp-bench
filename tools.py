@@ -99,8 +99,9 @@ def get_dataset(replica: Replica, reload=False):
     return prep_dataset(ds, replica, reload=reload)
 
 
-def benchmark_replica(ds: QSPRDataset, replica: Replica):
-    model = deepcopy(replica.model)
+def benchmark_replica(ds: QSPRDataset, replica_in: Replica):
+    replica = deepcopy(replica_in)
+    model = replica.model
     model.name = replica.id
     out_file = f"{model.outPrefix}_replica.json"
     if os.path.exists(out_file):
@@ -122,12 +123,13 @@ def benchmark_replica(ds: QSPRDataset, replica: Replica):
             results = scores
         else:
             results = pd.concat([results, scores])
-    replica.is_finished = True
+    replica_in.is_finished = True
+    replica_in.model = model
     results["ModelFile"] = model_path
     results["ModelAlg"] = f"{model.alg.__module__}.{model.alg.__name__}"
     results["ModelParams"] = model.parameters
-    results["ReplicaID"] = replica.id
-    # results["ReplicaFile"] = replica.toFile(out_file)
+    results["ReplicaID"] = replica_in.id
+    results["ReplicaFile"] = replica.toFile(out_file)
     results["ReplicaIsFinished"] = replica.is_finished
     return results
 

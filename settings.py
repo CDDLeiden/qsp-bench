@@ -20,13 +20,14 @@ N_REPLICAS = 30  # number of repetitions per experiment
 SEED = 42  # seed for random operations (seed for all random states)
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 N_PROC = 1  # number of processes to use for parallelization
+RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 
 # data sources
 DATA_SOURCES = [
     PapyrusForBenchmark(["P30542"], f"{DATA_DIR}/sets"),  # A1
     PapyrusForBenchmark(["P29274"], f"{DATA_DIR}/sets"),  # A2A
-    PapyrusForBenchmark(["P29275"], f"{DATA_DIR}/sets"),  # A2B
-    PapyrusForBenchmark(["P0DMS8"], f"{DATA_DIR}/sets"),  # A3
+    # PapyrusForBenchmark(["P29275"], f"{DATA_DIR}/sets"),  # A2B
+    # PapyrusForBenchmark(["P0DMS8"], f"{DATA_DIR}/sets"),  # A3
 ]
 
 # target properties
@@ -59,32 +60,32 @@ MODELS = [
         alg=ExtraTreesClassifier,
         base_dir=f"{DATA_DIR}/models"
     ),
-    # SklearnModel(
-    #     name="GaussianNB",
-    #     alg=GaussianNB,
-    #     base_dir=f"{SETTINGS_DIR}/models"
-    # ),
+    SklearnModel(
+        name="GaussianNB",
+        alg=GaussianNB,
+        base_dir=f"{DATA_DIR}/models"
+    ),
     # SklearnModel(
     #     name="MLPClassifier",
     #     alg=MLPClassifier,
-    #     base_dir=f"{SETTINGS_DIR}/models"
+    #     base_dir=f"{DATA_DIR}/models"
     # ),
     # SklearnModel(
     #     name="SVC",
     #     alg=SVC,
-    #     base_dir=f"{SETTINGS_DIR}/models"
+    #     base_dir=f"{DATA_DIR}/models"
     # ),
     # SklearnModel(
     #     name="XGBClassifier",
     #     alg=XGBClassifier,
-    #     base_dir=f"{SETTINGS_DIR}/models"
+    #     base_dir=f"{DATA_DIR}/models"
     # ),
 ]
 
 # assessors
 ASSESSORS = [
     TestSetAssessor(scoring="roc_auc"),
-    # TestSetAssessor(scoring="matthews_corrcoef"),
+    TestSetAssessor(scoring="matthews_corrcoef", use_proba=False),
     # TestSetAssessor(scoring="recall"),
     # TestSetAssessor(scoring="precision"),
 ]
