@@ -56,7 +56,6 @@ def benchmark_replica(ds: QSPRDataset, replica: Replica):
     model.initRandomState(replica.random_seed)
     if replica.optimizer is not None:
         replica.optimizer.optimize(model)
-    model_path = model.save()
     results = None
     for assessor in replica.assessors:
         scores = assessor(model, save=True)

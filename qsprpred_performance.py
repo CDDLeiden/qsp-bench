@@ -15,10 +15,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# set True to run all replicas from scratch
-rerun = False
-if os.path.exists(DATA_DIR) and rerun:
-    shutil.rmtree(DATA_DIR)
 
 lock = Lock()
 def run_replica(replica: Replica):
@@ -37,7 +33,7 @@ def run_replica(replica: Replica):
         replica.is_finished = replica_out.is_finished
         model = replica.model
         df_replica["ModelFile"] = model.save()
-        df_replica["ModelAlg"] = f"{model.alg.__module__}.{model.alg.__name__}"
+        df_replica["ModelName"] = model.name
         df_replica["ModelParams"] = json.dumps(model.parameters)
         df_replica["ReplicaID"] = replica.id
         df_replica["DataSet"] = ds.name.split("_")[0]
@@ -67,7 +63,7 @@ with ProcessPoolExecutor(max_workers=N_PROC) as executor:
             SETTINGS.iter_replicas()
     ):
         if model_summary is not None:
-            raise ValueError("Something went wrong: ", model_summary[1])
+            logging.error("Something went wrong: ", model_summary[1])
 
 
 results = pd.read_table(RESULTS_FILE)

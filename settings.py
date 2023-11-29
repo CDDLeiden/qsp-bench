@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from qsprpred.data.data import TargetProperty
 from qsprpred.data.descriptors.sets import FingerprintSet
@@ -15,11 +16,12 @@ from xgboost import XGBClassifier
 from benchmark_settings import DataPrepSettings, Benchmark
 from tools import PapyrusForBenchmark
 
+START_FRESH = False  # set True to run all replicas from scratch
 NAME = "ExampleBenchmark"  # name of the benchmark
-N_REPLICAS = 5  # number of repetitions per experiment
+N_REPLICAS = 3  # number of repetitions per experiment
 SEED = 42  # seed for random operations (seed for all random states)
 DATA_DIR = f"./data/{NAME}"  # directory to store data
-N_PROC = 1  # number of processes to use for parallelization
+N_PROC = 4  # number of processes to use for parallelization
 RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 
 # data sources
@@ -65,11 +67,11 @@ MODELS = [
         alg=GaussianNB,
         base_dir=f"{DATA_DIR}/models"
     ),
-    # SklearnModel(
-    #     name="MLPClassifier",
-    #     alg=MLPClassifier,
-    #     base_dir=f"{DATA_DIR}/models"
-    # ),
+    SklearnModel(
+        name="MLPClassifier",
+        alg=MLPClassifier,
+        base_dir=f"{DATA_DIR}/models"
+    ),
     # SklearnModel(
     #     name="SVC",
     #     alg=SVC,
@@ -103,6 +105,10 @@ SETTINGS = Benchmark(
     assessors=ASSESSORS,
     optimizers=[],  # no hyperparameter optimization
 )
+
+# create data directory
+if os.path.exists(DATA_DIR) and START_FRESH:
+    shutil.rmtree(DATA_DIR)
 SETTINGS.toFile(f"{DATA_DIR}/{NAME}.json")
 
 
