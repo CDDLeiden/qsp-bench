@@ -14,7 +14,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
-from benchmark_settings import DataPrepSettings, BenchmarkSettings
+from benchmarks.settings import DataPrepSettings, BenchmarkSettings
 from tools import PapyrusForBenchmark
 
 START_FRESH = False  # set True to run all replicas from scratch
