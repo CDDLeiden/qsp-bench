@@ -1,7 +1,3 @@
-import shutil
-
-import json
-
 import logging
 
 import os
@@ -10,7 +6,6 @@ from multiprocessing import Lock
 
 from benchmark_settings import Replica
 from settings import SETTINGS, N_PROC, RESULTS_FILE, DATA_DIR
-from tools import benchmark_replica
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -26,21 +21,11 @@ def run_replica(replica: Replica):
             if df_results is not None and df_results.ReplicaID.isin([replica.id]).any():
                 logging.warning(f"Skipping {replica.id}")
                 return
-            ds = replica.get_dataset(reload=False)
-        ds = replica.prep_dataset(ds)
-        df_replica, replica_out = benchmark_replica(ds, replica)
-        replica.model = replica_out.model
-        replica.is_finished = replica_out.is_finished
-        model = replica.model
-        df_replica["ModelFile"] = model.save()
-        df_replica["ModelName"] = model.name
-        df_replica["ModelParams"] = json.dumps(model.parameters)
-        df_replica["ReplicaID"] = replica.id
-        df_replica["DataSet"] = ds.name.split("_")[0]
-        out_file = f"{model.outPrefix}_replica.json"
-        df_replica["ReplicaFile"] = replica.toFile(out_file)
+            replica.create_dataset(reload=False)
+        replica.prep_dataset()
+        df_report = replica.create_report()
         with lock:
-            df_replica.to_csv(
+            df_report.to_csv(
                 RESULTS_FILE,
                 sep="\t",
                 index=False,
@@ -76,7 +61,7 @@ for score_func in results.ScoreFunc.unique():
         data=df_ind,
         x="DataSet",
         y="Score",
-        hue="ModelAlg",
+        hue="Algorithm",
         palette=sns.color_palette('bright')
     )
     plt.savefig(f"{DATA_DIR}/{score_func}_results.png")

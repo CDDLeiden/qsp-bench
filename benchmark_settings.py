@@ -1,3 +1,4 @@
+import json
 import logging
 
 import itertools
@@ -5,6 +6,8 @@ import random
 from typing import Callable, Generator
 
 import numpy as np
+import pandas as pd
+
 from qsprpred.data.data import TargetProperty, QSPRDataset
 from qsprpred.data.descriptors.calculators import MoleculeDescriptorsCalculator
 from qsprpred.data.descriptors.sets import DescriptorSet
@@ -33,20 +36,21 @@ class Replica(JSONSerializable):
 
     Attributes:
         idx (int): number of the replica
-        benchmark_name (str): name of the benchmark
+        name (str): name of the benchmark
         data_source (DataSource): data source to use
         target_props (TargetProperty | dict): target property to use
         prep_settings (DataPrepSettings): data preparation settings to use
         model (QSPRModel): model to use
         assessors (ModelAssessor): model assessor to use
         optimizer (HyperparameterOptimization): hyperparameter optimizer to use
-        is_finished (bool): whether the replica has finished benchmarking
+        random_seed (int): seed for random operations
+        ds (QSPRDataset): data set used for this replica
     """
 
     _notJSON = ["model"]
 
     idx: int
-    benchmark_name: str
+    name: str
     data_source: DataSource
     descriptors: list[DescriptorSet]
     target_props: list[TargetProperty]
@@ -55,80 +59,116 @@ class Replica(JSONSerializable):
     optimizer: HyperparameterOptimization
     assessors: list[ModelAssessor]
     random_seed: int
-    is_finished: bool = False
+    ds: QSPRDataset | None = None
 
     def __getstate__(self):
         o_dict = super().__getstate__()
         o_dict["model"] = self.model.save()
+        o_dict["ds"] = None
         return o_dict
 
     def __setstate__(self, state):
         super().__setstate__(state)
         self.model = QSPRModel.fromFile(state["model"])
+        self.ds = None
 
     @property
     def id(self):
         """Returns the identifier of this replica."""
-        return f"{self.benchmark_name}_{self.random_seed}"
+        return f"{self.name}_{self.random_seed}"
 
-    def get_dataset(self, reload=False):
+    def create_dataset(self, reload=False):
         # get the basics set from data source
-        ds = self.data_source.getDataSet(
+        self.ds = self.data_source.getDataSet(
             self.target_props,
             overwrite=reload,
             random_state=self.random_seed
         )
-        if reload:
-            ds.save()
         # add descriptors
-        ds = self.add_descriptors(ds, reload=reload)
-        return ds
+        self.add_descriptors(reload=reload)
 
     def add_descriptors(
             self,
-            ds: QSPRDataset,
             reload: bool = False
-    ) -> QSPRDataset:
+    ):
         # generate name for the data with descriptors
         desc_id = "_".join([str(d) for d in self.descriptors])
         # tp_id = "_".join([tp.name for tp in ds.targetProperties])
-        ds_desc_name = f"{ds.name}_{desc_id}"
+        ds_desc_name = f"{self.ds.name}_{desc_id}"
         # create or reload the data set
         try:
-            ds_prepped = QSPRDataset(
+            ds_descs = QSPRDataset(
                 name=ds_desc_name,
-                store_dir=ds.baseDir,
+                store_dir=self.ds.baseDir,
                 target_props=self.target_props,
                 random_state=self.random_seed
             )
         except ValueError:
             logging.warning(f"Data set {ds_desc_name} not found. It will be created.")
-            ds_prepped = QSPRDataset(
+            ds_descs = QSPRDataset(
                 name=ds_desc_name,
-                store_dir=ds.baseDir,
+                store_dir=self.ds.baseDir,
                 target_props=self.target_props,
                 random_state=self.random_seed,
-                df=ds.getDF(),
+                df=self.ds.getDF(),
             )
-            ds_prepped.save()
         # calculate descriptors if necessary
-        if not ds_prepped.hasDescriptors or reload:
+        if not ds_descs.hasDescriptors or reload:
+            logging.info(f"Calculating descriptors for {ds_descs.name}.")
             desc_calculator = MoleculeDescriptorsCalculator(
                 desc_sets=self.descriptors
             )
-            ds_prepped.addDescriptors(desc_calculator, recalculate=True)
-            ds_prepped.save()
-        return ds_prepped
+            ds_descs.addDescriptors(desc_calculator, recalculate=True)
+            ds_descs.save()
+        self.ds = ds_descs
+        self.ds.save()
 
-    def prep_dataset(self, ds: QSPRDataset) -> QSPRDataset:
-        ds.prepareDataset(
+    def prep_dataset(self):
+        self.ds.prepareDataset(
             **self.prep_settings.__dict__,
         )
-        return ds
+
+    def create_report(self):
+        self.initModel()
+        results = self.run_assessment()
+        results["ModelFile"] = self.model.save()
+        results["Algorithm"] = self.model.alg.__name__
+        results["AlgorithmParams"] = json.dumps(self.model.parameters)
+        results["ReplicaID"] = self.id
+        results["DataSet"] = self.ds.name
+        out_file = f"{self.model.outPrefix}_replica.json"
+        for assessor in self.assessors:
+            # FIXME: some problems in monitor serialization now prevent this
+            assessor.monitor = None
+        self.model.data = None  # FIXME: model now does not support data serialization
+        results["ReplicaFile"] = self.toFile(out_file)
+        return results
+
+    def initModel(self):
+        self.model.name = self.id
+        self.model.initFromData(self.ds)
+        self.model.initRandomState(self.random_seed)
+        if self.optimizer is not None:
+            self.optimizer.optimize(self.model)
+
+    def run_assessment(self):
+        results = None
+        for assessor in self.assessors:
+            scores = assessor(self.model, save=True)
+            scores = pd.DataFrame({
+                "Assessor": assessor.__class__.__name__,
+                "ScoreFunc": assessor.scoreFunc.name,
+                "Score": scores,
+            })
+            if results is None:
+                results = scores
+            else:
+                results = pd.concat([results, scores])
+        return results
 
 
 @dataclass
-class Benchmark(JSONSerializable):
+class BenchmarkSettings(JSONSerializable):
     """Class that determines settings for a benchmarking run.
 
     Attributes:
@@ -166,29 +206,44 @@ class Benchmark(JSONSerializable):
         super().__setstate__(state)
         self.models = [QSPRModel.fromFile(model) for model in state["models"]]
 
-    @staticmethod
-    def get_pseudo_random_list(seed: int, n: int) -> list:
-        """Returns a list of pseudo-random numbers.
+    @property
+    def n_runs(self):
+        """Returns the total number of benchmarking runs."""
+        self.checkConsistency()
+        ret = (self.n_replicas * len(self.data_sources)
+                * len(self.descriptors) * len(self.target_props)
+                * len(self.prep_settings) * len(self.models)
+               )
+        if len(self.optimizers) > 0:
+            ret *= len(self.optimizers)
+        return ret
+
+    def get_seed_list(self, seed: int) -> list[int]:
+        """
+        Get a list of seeds for the replicas.
 
         Args:
-            seed (int): seed for random operations
-            n (int): number of random numbers to generate
+            seed(int): master seed to generate the list of seeds from
 
         Returns:
-            list: list of pseudo-random numbers
+            list[int]: list of seeds for the replicas
+
         """
         random.seed(seed)
-        return random.sample(range(2**32 - 1), n)
+        return random.sample(range(2**32 - 1), self.n_runs)
 
-    def iter_replicas(self) -> Generator[Replica, None, None]:
-        np.random.seed(self.random_seed)
-        # generate all combinations of settings with itertools
+    def checkConsistency(self):
         assert len(self.data_sources) > 0, "No data sources defined."
         assert len(self.descriptors) > 0, "No descriptors defined."
         assert len(self.target_props) > 0, "No target properties defined."
         assert len(self.prep_settings) > 0, "No data preparation settings defined."
         assert len(self.models) > 0, "No models defined."
         assert len(self.assessors) > 0, "No model assessors defined."
+
+    def iter_replicas(self) -> Generator[Replica, None, None]:
+        np.random.seed(self.random_seed)
+        # generate all combinations of settings with itertools
+        self.checkConsistency()
         indices = [x+1 for x in range(self.n_replicas)]
         optimizers = self.optimizers if len(self.optimizers) > 0 else [None]
         product = itertools.product(
@@ -201,16 +256,10 @@ class Benchmark(JSONSerializable):
             self.models,
             optimizers,
         )
-        n_items = (len(indices) * len(self.data_sources)
-                   * len(self.descriptors) * len(self.target_props)
-                   * len(self.prep_settings) * len(self.models)
-                   * len(optimizers))
-        seeds = self.get_pseudo_random_list(self.random_seed, n_items)
+        seeds = self.get_seed_list(self.random_seed)
         for idx, settings in enumerate(product):
             yield Replica(
                 *settings,
                 random_seed=seeds[idx],
                 assessors=self.assessors
             )
-
-

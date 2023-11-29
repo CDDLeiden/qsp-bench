@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 
@@ -13,12 +14,12 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
-from benchmark_settings import DataPrepSettings, Benchmark
+from benchmark_settings import DataPrepSettings, BenchmarkSettings
 from tools import PapyrusForBenchmark
 
 START_FRESH = False  # set True to run all replicas from scratch
 NAME = "ExampleBenchmark"  # name of the benchmark
-N_REPLICAS = 3  # number of repetitions per experiment
+N_REPLICAS = 2  # number of repetitions per experiment
 SEED = 42  # seed for random operations (seed for all random states)
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 N_PROC = 4  # number of processes to use for parallelization
@@ -28,8 +29,8 @@ RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 DATA_SOURCES = [
     PapyrusForBenchmark(["P30542"], f"{DATA_DIR}/sets"),  # A1
     PapyrusForBenchmark(["P29274"], f"{DATA_DIR}/sets"),  # A2A
-    PapyrusForBenchmark(["P29275"], f"{DATA_DIR}/sets"),  # A2B
-    PapyrusForBenchmark(["P0DMS8"], f"{DATA_DIR}/sets"),  # A3
+    # PapyrusForBenchmark(["P29275"], f"{DATA_DIR}/sets"),  # A2B
+    # PapyrusForBenchmark(["P0DMS8"], f"{DATA_DIR}/sets"),  # A3
 ]
 
 # target properties
@@ -67,15 +68,18 @@ MODELS = [
         alg=GaussianNB,
         base_dir=f"{DATA_DIR}/models"
     ),
-    SklearnModel(
-        name="MLPClassifier",
-        alg=MLPClassifier,
-        base_dir=f"{DATA_DIR}/models"
-    ),
+    # SklearnModel(
+    #     name="MLPClassifier",
+    #     alg=MLPClassifier,
+    #     base_dir=f"{DATA_DIR}/models"
+    # ),
     # SklearnModel(
     #     name="SVC",
     #     alg=SVC,
-    #     base_dir=f"{DATA_DIR}/models"
+    #     base_dir=f"{DATA_DIR}/models",
+    #     parameters={
+    #         "probability": True,
+    #     }
     # ),
     # SklearnModel(
     #     name="XGBClassifier",
@@ -88,12 +92,12 @@ MODELS = [
 ASSESSORS = [
     TestSetAssessor(scoring="roc_auc"),
     TestSetAssessor(scoring="matthews_corrcoef", use_proba=False),
-    TestSetAssessor(scoring="recall", use_proba=False),
-    TestSetAssessor(scoring="precision", use_proba=False),
+    # TestSetAssessor(scoring="recall", use_proba=False),
+    # TestSetAssessor(scoring="precision", use_proba=False),
 ]
 
 # benchmark settings
-SETTINGS = Benchmark(
+SETTINGS = BenchmarkSettings(
     name=NAME,
     n_replicas=N_REPLICAS,
     random_seed=SEED,
@@ -110,5 +114,5 @@ SETTINGS = Benchmark(
 if os.path.exists(DATA_DIR) and START_FRESH:
     shutil.rmtree(DATA_DIR)
 SETTINGS.toFile(f"{DATA_DIR}/{NAME}.json")
-
+print(f"Will perform {SETTINGS.n_runs} replica runs.")
 

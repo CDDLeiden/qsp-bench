@@ -1,25 +1,12 @@
-import json
-
-import logging
 import os
 import random
 import string
 import subprocess
 import sys
-import warnings
-from copy import deepcopy
-from itertools import product
 
 import pandas as pd
-from matplotlib import pyplot as plt
-from qsprpred.data.data import QSPRDataset, MoleculeTable
-from qsprpred.data.descriptors.calculators import MoleculeDescriptorsCalculator
-from qsprpred.data.descriptors.sets import FingerprintSet
+from qsprpred.data.data import MoleculeTable
 from qsprpred.data.sources.papyrus import Papyrus
-from qsprpred.models.sklearn import SklearnModel
-from qsprpred.plotting.classification import MetricsPlot
-
-from benchmark_settings import Replica
 
 
 class PapyrusForBenchmark(Papyrus):
@@ -46,30 +33,6 @@ class PapyrusForBenchmark(Papyrus):
             use_existing=True,
             **kwargs,
         )
-
-
-def benchmark_replica(ds: QSPRDataset, replica: Replica):
-    replica = deepcopy(replica)
-    model = replica.model
-    model.name = replica.id
-    model.initFromData(ds)
-    model.initRandomState(replica.random_seed)
-    if replica.optimizer is not None:
-        replica.optimizer.optimize(model)
-    results = None
-    for assessor in replica.assessors:
-        scores = assessor(model, save=True)
-        scores = pd.DataFrame({
-            "Assessor": assessor.__class__.__name__,
-            "ScoreFunc": assessor.scoreFunc.name,
-            "Score": scores,
-        })
-        if results is None:
-            results = scores
-        else:
-            results = pd.concat([results, scores])
-    replica.is_finished = True
-    return results, replica
 
 
 def get_random_string():
