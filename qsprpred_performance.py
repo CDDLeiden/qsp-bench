@@ -1,3 +1,7 @@
+import shutil
+
+import json
+
 import logging
 
 import os
@@ -5,33 +9,54 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Lock
 
 from benchmark_settings import Replica
-from settings import SETTINGS, N_PROC, RESULTS_FILE
-from tools import get_dataset, benchmark_replica, get_AVE_bias
+from settings import SETTINGS, N_PROC, RESULTS_FILE, DATA_DIR
+from tools import benchmark_replica
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# set False to avoid repeating experiments, will  only run the analysis part
+# set True to run all replicas from scratch
 rerun = False
-# set to True if you want to fetch data sets again
-reload_data = False
+if os.path.exists(DATA_DIR) and rerun:
+    shutil.rmtree(DATA_DIR)
 
 lock = Lock()
-
-
 def run_replica(replica: Replica):
-    with lock:
-        if not rerun and os.path.exists(RESULTS_FILE):
-            df_results = pd.read_table(RESULTS_FILE)
-            if replica.id in df_results.ReplicaID:
+    try:
+        with lock:
+            df_results = None
+            if os.path.exists(RESULTS_FILE):
+                df_results = pd.read_table(RESULTS_FILE)
+            if df_results is not None and df_results.ReplicaID.isin([replica.id]).any():
                 logging.warning(f"Skipping {replica.id}")
-                return df_results.loc[df_results.ReplicaID == replica.id]
-        else:
-            ds = get_dataset(replica, reload=reload_data)
-    return (
-        benchmark_replica(ds, replica)
-        # get_AVE_bias(ds, ds.targetProperties[0].name)
-    )
+                return
+            ds = replica.get_dataset(reload=False)
+        ds = replica.prep_dataset(ds)
+        df_replica, replica_out = benchmark_replica(ds, replica)
+        replica.model = replica_out.model
+        replica.is_finished = replica_out.is_finished
+        model = replica.model
+        df_replica["ModelFile"] = model.save()
+        df_replica["ModelAlg"] = f"{model.alg.__module__}.{model.alg.__name__}"
+        df_replica["ModelParams"] = json.dumps(model.parameters)
+        df_replica["ReplicaID"] = replica.id
+        df_replica["DataSet"] = ds.name.split("_")[0]
+        out_file = f"{model.outPrefix}_replica.json"
+        df_replica["ReplicaFile"] = replica.toFile(out_file)
+        with lock:
+            df_replica.to_csv(
+                RESULTS_FILE,
+                sep="\t",
+                index=False,
+                mode="a",
+                header=not os.path.exists(RESULTS_FILE)
+            )
+            logging.info(f"Finished {replica.id}.")
+    except Exception as e:
+        logging.error(f"Error in {replica.id}:")
+        logging.exception(e)
+        return replica.id, e
+
 
 results = None
 # results_bias = None
@@ -41,44 +66,26 @@ with ProcessPoolExecutor(max_workers=N_PROC) as executor:
             run_replica,
             SETTINGS.iter_replicas()
     ):
-        if results is None:
-            results = model_summary
-        else:
-            results = pd.concat([results, model_summary])
-        # if results_bias is None:
-        #     results_bias = bias_summary
-        # else:
-        #     results_bias = pd.concat([results_bias, bias_summary])
-# save results
-results.to_csv(
-    RESULTS_FILE,
-    sep="\t",
-    index=False,
-    mode="a",
-    header=not os.path.exists("results.tsv")
-)
-# results_bias.to_csv(
-#     "results_bias.tsv",
-#     sep="\t",
-#     index=False,
-#     mode="a",
-#     header=not os.path.exists("results_bias.tsv")
-# )
+        if model_summary is not None:
+            raise ValueError("Something went wrong: ", model_summary[1])
 
+
+results = pd.read_table(RESULTS_FILE)
 # plot model performance
-df_ind = results.loc[(results.ScoreFunc == "IND") & (results.Metric == "matthews_corrcoef")]
-plt.ylim([0, 1])
-plt.title(setting['dataset_name'])
-sns.boxplot(
-    data=df_ind,
-    x="gamma",
-    y="Value",
-    hue="sim_threshold",
-    palette=sns.color_palette('bright')
-)
-plt.savefig(f"{setting['dataset_name']}_results.png")
-plt.clf()
-plt.close()
+for score_func in results.ScoreFunc.unique():
+    df_ind = results.loc[(results.ScoreFunc == score_func)]
+    plt.ylim([0, 1])
+    plt.title(score_func)
+    sns.boxplot(
+        data=df_ind,
+        x="DataSet",
+        y="Score",
+        hue="ModelAlg",
+        palette=sns.color_palette('bright')
+    )
+    plt.savefig(f"{DATA_DIR}/{score_func}_results.png")
+    plt.clf()
+    plt.close()
 
 # plot bias data
 # for value in [

@@ -1,3 +1,5 @@
+import json
+
 import logging
 import os
 import random
@@ -46,66 +48,10 @@ class PapyrusForBenchmark(Papyrus):
         )
 
 
-def prep_dataset(
-        ds: QSPRDataset,
-        replica: Replica,
-        reload: bool = False
-):
-    # generate name for the data with descriptors
-    prep_settings = replica.prep_settings
-    desc_id = "_".join([str(d) for d in replica.descriptors])
-    # tp_id = "_".join([tp.name for tp in ds.targetProperties])
-    ds_desc_name = f"{ds.name}_{desc_id}"
-    # create or reload the data set
-    try:
-        ds_prepped = QSPRDataset(
-            name=ds_desc_name,
-            store_dir=ds.baseDir,
-            target_props=replica.target_props,
-            random_state=replica.random_seed
-        )
-    except ValueError:
-        logging.warning(f"Data set {ds_desc_name} not found. It will be created.")
-        ds_prepped = QSPRDataset(
-            name=ds_desc_name,
-            store_dir=ds.baseDir,
-            target_props=replica.target_props,
-            random_state=replica.random_seed,
-            df=ds.getDF(),
-        )
-        ds_prepped.save()
-    # calculate descriptors if necessary
-    if not ds_prepped.hasDescriptors or reload:
-        desc_calculator = MoleculeDescriptorsCalculator(
-            desc_sets=replica.descriptors
-        )
-        ds_prepped.addDescriptors(desc_calculator, recalculate=True)
-        ds_prepped.save()
-    # prepare the data set
-    ds_prepped.prepareDataset(
-        **prep_settings.__dict__,
-    )
-    return ds_prepped
-
-
-def get_dataset(replica: Replica, reload=False):
-    ds = replica.data_source.getDataSet(
-        replica.target_props,
-        overwrite=reload,
-        random_state=replica.random_seed
-    )
-    if reload:
-        ds.save()
-    return prep_dataset(ds, replica, reload=reload)
-
-
-def benchmark_replica(ds: QSPRDataset, replica_in: Replica):
-    replica = deepcopy(replica_in)
+def benchmark_replica(ds: QSPRDataset, replica: Replica):
+    replica = deepcopy(replica)
     model = replica.model
     model.name = replica.id
-    out_file = f"{model.outPrefix}_replica.json"
-    if os.path.exists(out_file):
-        return None
     model.initFromData(ds)
     model.initRandomState(replica.random_seed)
     if replica.optimizer is not None:
@@ -123,15 +69,8 @@ def benchmark_replica(ds: QSPRDataset, replica_in: Replica):
             results = scores
         else:
             results = pd.concat([results, scores])
-    replica_in.is_finished = True
-    replica_in.model = model
-    results["ModelFile"] = model_path
-    results["ModelAlg"] = f"{model.alg.__module__}.{model.alg.__name__}"
-    results["ModelParams"] = model.parameters
-    results["ReplicaID"] = replica_in.id
-    results["ReplicaFile"] = replica.toFile(out_file)
-    results["ReplicaIsFinished"] = replica.is_finished
-    return results
+    replica.is_finished = True
+    return results, replica
 
 
 def get_random_string():

@@ -1,9 +1,12 @@
+import logging
+
 import itertools
 import random
 from typing import Callable, Generator
 
 import numpy as np
-from qsprpred.data.data import TargetProperty
+from qsprpred.data.data import TargetProperty, QSPRDataset
+from qsprpred.data.descriptors.calculators import MoleculeDescriptorsCalculator
 from qsprpred.data.descriptors.sets import DescriptorSet
 from qsprpred.data.processing.feature_standardizers import SKLearnStandardizer
 from qsprpred.data.sampling.splits import DataSplit
@@ -67,6 +70,61 @@ class Replica(JSONSerializable):
     def id(self):
         """Returns the identifier of this replica."""
         return f"{self.benchmark_name}_{self.random_seed}"
+
+    def get_dataset(self, reload=False):
+        # get the basics set from data source
+        ds = self.data_source.getDataSet(
+            self.target_props,
+            overwrite=reload,
+            random_state=self.random_seed
+        )
+        if reload:
+            ds.save()
+        # add descriptors
+        ds = self.add_descriptors(ds, reload=reload)
+        return ds
+
+    def add_descriptors(
+            self,
+            ds: QSPRDataset,
+            reload: bool = False
+    ) -> QSPRDataset:
+        # generate name for the data with descriptors
+        desc_id = "_".join([str(d) for d in self.descriptors])
+        # tp_id = "_".join([tp.name for tp in ds.targetProperties])
+        ds_desc_name = f"{ds.name}_{desc_id}"
+        # create or reload the data set
+        try:
+            ds_prepped = QSPRDataset(
+                name=ds_desc_name,
+                store_dir=ds.baseDir,
+                target_props=self.target_props,
+                random_state=self.random_seed
+            )
+        except ValueError:
+            logging.warning(f"Data set {ds_desc_name} not found. It will be created.")
+            ds_prepped = QSPRDataset(
+                name=ds_desc_name,
+                store_dir=ds.baseDir,
+                target_props=self.target_props,
+                random_state=self.random_seed,
+                df=ds.getDF(),
+            )
+            ds_prepped.save()
+        # calculate descriptors if necessary
+        if not ds_prepped.hasDescriptors or reload:
+            desc_calculator = MoleculeDescriptorsCalculator(
+                desc_sets=self.descriptors
+            )
+            ds_prepped.addDescriptors(desc_calculator, recalculate=True)
+            ds_prepped.save()
+        return ds_prepped
+
+    def prep_dataset(self, ds: QSPRDataset) -> QSPRDataset:
+        ds.prepareDataset(
+            **self.prep_settings.__dict__,
+        )
+        return ds
 
 
 @dataclass

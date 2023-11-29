@@ -3,7 +3,7 @@ import os
 from qsprpred.data.data import TargetProperty
 from qsprpred.data.descriptors.sets import FingerprintSet
 from qsprpred.data.sampling.splits import RandomSplit, ClusterSplit, ScaffoldSplit
-from qsprpred.models.assessment_methods import CrossValAssessor, TestSetAssessor
+from qsprpred.models.assessment_methods import TestSetAssessor
 from qsprpred.models.sklearn import SklearnModel
 from qsprpred.models.tasks import TargetTasks
 from sklearn.ensemble import ExtraTreesClassifier
@@ -16,7 +16,7 @@ from benchmark_settings import DataPrepSettings, Benchmark
 from tools import PapyrusForBenchmark
 
 NAME = "ExampleBenchmark"  # name of the benchmark
-N_REPLICAS = 30  # number of repetitions per experiment
+N_REPLICAS = 5  # number of repetitions per experiment
 SEED = 42  # seed for random operations (seed for all random states)
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 N_PROC = 1  # number of processes to use for parallelization
@@ -26,8 +26,8 @@ RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 DATA_SOURCES = [
     PapyrusForBenchmark(["P30542"], f"{DATA_DIR}/sets"),  # A1
     PapyrusForBenchmark(["P29274"], f"{DATA_DIR}/sets"),  # A2A
-    # PapyrusForBenchmark(["P29275"], f"{DATA_DIR}/sets"),  # A2B
-    # PapyrusForBenchmark(["P0DMS8"], f"{DATA_DIR}/sets"),  # A3
+    PapyrusForBenchmark(["P29275"], f"{DATA_DIR}/sets"),  # A2B
+    PapyrusForBenchmark(["P0DMS8"], f"{DATA_DIR}/sets"),  # A3
 ]
 
 # target properties
@@ -45,12 +45,12 @@ DATA_PREPS = [
     DataPrepSettings(
         split=RandomSplit(test_fraction=0.2),
     ),
-    DataPrepSettings(
-        split=ClusterSplit(test_fraction=0.2),
-    ),
-    DataPrepSettings(
-        split=ScaffoldSplit(test_fraction=0.2),
-    ),
+    # DataPrepSettings(
+    #     split=ClusterSplit(test_fraction=0.2),
+    # ),
+    # DataPrepSettings(
+    #     split=ScaffoldSplit(test_fraction=0.2),
+    # ),
 ]
 
 # models
@@ -86,8 +86,8 @@ MODELS = [
 ASSESSORS = [
     TestSetAssessor(scoring="roc_auc"),
     TestSetAssessor(scoring="matthews_corrcoef", use_proba=False),
-    # TestSetAssessor(scoring="recall"),
-    # TestSetAssessor(scoring="precision"),
+    TestSetAssessor(scoring="recall", use_proba=False),
+    TestSetAssessor(scoring="precision", use_proba=False),
 ]
 
 # benchmark settings
