@@ -34,7 +34,8 @@ class BenchmarkRunner:
                     self.settings.iter_replicas()
             ):
                 if result is not None:
-                    logging.error("Something went wrong: ", result[1])
+                    logging.error(f"Something went wrong for {result[0]}: ", result[1])
+                    logging.exception(result[1])
 
     def run_replica(self, replica: Replica):
         try:

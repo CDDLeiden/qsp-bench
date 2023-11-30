@@ -1,3 +1,5 @@
+import os
+
 import json
 import logging
 from copy import deepcopy
@@ -48,7 +50,9 @@ class Replica(JSONSerializable):
 
     def __getstate__(self):
         o_dict = super().__getstate__()
-        o_dict["model"] = self.model.save()
+        o_dict["model"] = self.model.metaFile
+        if not os.path.exists(o_dict["model"]):
+            self.model.save()
         o_dict["ds"] = None
         return o_dict
 
@@ -56,6 +60,9 @@ class Replica(JSONSerializable):
         super().__setstate__(state)
         self.model = QSPRModel.fromFile(state["model"])
         self.ds = None
+
+    def __str__(self):
+        return self.id
 
     @property
     def id(self):
@@ -116,7 +123,7 @@ class Replica(JSONSerializable):
     def create_report(self):
         self.initModel()
         results = self.run_assessment()
-        results["ModelFile"] = self.model.save()
+        results["ModelFile"] = self.model.metaFile
         results["Algorithm"] = self.model.alg.__name__
         results["AlgorithmParams"] = json.dumps(self.model.parameters)
         results["ReplicaID"] = self.id
@@ -130,7 +137,7 @@ class Replica(JSONSerializable):
         return results
 
     def initModel(self):
-        # self.model = deepcopy(self.model)
+        self.model = deepcopy(self.model)
         self.model.name = self.id
         self.model.initFromData(self.ds)
         self.model.initRandomState(self.random_seed)

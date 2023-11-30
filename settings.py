@@ -18,11 +18,13 @@ from benchmarks.settings import DataPrepSettings, BenchmarkSettings
 from tools import PapyrusForBenchmark
 
 START_FRESH = False  # set True to run all replicas from scratch
+RESET_MODELS = True  # set True to reset all models
 NAME = "ExampleBenchmark"  # name of the benchmark
-N_REPLICAS = 2  # number of repetitions per experiment
+N_REPLICAS = 3  # number of repetitions per experiment
 SEED = 42  # seed for random operations (seed for all random states)
 DATA_DIR = f"./data/{NAME}"  # directory to store data
-N_PROC = 4  # number of processes to use for parallelization
+MODELS_DIR = f"{DATA_DIR}/models"  # directory to store models
+N_PROC = 12  # number of processes to use for parallelization
 RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 
 # data sources
@@ -61,31 +63,32 @@ MODELS = [
     SklearnModel(
         name="ExtraTreesClassifier",
         alg=ExtraTreesClassifier,
-        base_dir=f"{DATA_DIR}/models"
+        base_dir=MODELS_DIR,
     ),
     SklearnModel(
         name="GaussianNB",
         alg=GaussianNB,
-        base_dir=f"{DATA_DIR}/models"
+        base_dir=MODELS_DIR,
     ),
-    # SklearnModel(
-    #     name="MLPClassifier",
-    #     alg=MLPClassifier,
-    #     base_dir=f"{DATA_DIR}/models"
-    # ),
-    # SklearnModel(
-    #     name="SVC",
-    #     alg=SVC,
-    #     base_dir=f"{DATA_DIR}/models",
-    #     parameters={
-    #         "probability": True,
-    #     }
-    # ),
-    # SklearnModel(
-    #     name="XGBClassifier",
-    #     alg=XGBClassifier,
-    #     base_dir=f"{DATA_DIR}/models"
-    # ),
+    SklearnModel(
+        name="MLPClassifier",
+        alg=MLPClassifier,
+        base_dir=f"{DATA_DIR}/models",
+    ),
+    SklearnModel(
+        name="SVC",
+        alg=SVC,
+        base_dir=f"{DATA_DIR}/models",
+        parameters={
+            "probability": True,
+            "max_iter": 1000,
+        }
+    ),
+    SklearnModel(
+        name="XGBClassifier",
+        alg=XGBClassifier,
+        base_dir=f"{DATA_DIR}/models",
+    ),
 ]
 
 # assessors
@@ -113,6 +116,10 @@ SETTINGS = BenchmarkSettings(
 # create data directory
 if os.path.exists(DATA_DIR) and START_FRESH:
     shutil.rmtree(DATA_DIR)
+if os.path.exists(MODELS_DIR) and RESET_MODELS:
+    shutil.rmtree(MODELS_DIR)
+if os.path.exists(RESULTS_FILE) and RESET_MODELS:
+    os.remove(RESULTS_FILE)
 SETTINGS.toFile(f"{DATA_DIR}/{NAME}.json")
 print(f"Will perform {SETTINGS.n_runs} replica runs.")
 
