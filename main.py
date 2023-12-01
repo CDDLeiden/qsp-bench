@@ -1,4 +1,4 @@
-from benchmarks.runner import BenchmarkRunner
+from qsprpred.benchmarks import BenchmarkRunner
 from settings import SETTINGS, N_PROC, RESULTS_FILE, DATA_DIR
 import seaborn as sns
 import matplotlib.pyplot as plt

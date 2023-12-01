@@ -1,10 +1,9 @@
-import logging
 import os
 import shutil
 
 from qsprpred.data.data import TargetProperty
 from qsprpred.data.descriptors.sets import FingerprintSet
-from qsprpred.data.sampling.splits import RandomSplit, ClusterSplit, ScaffoldSplit
+from qsprpred.data.sampling.splits import RandomSplit
 from qsprpred.models.assessment_methods import TestSetAssessor
 from qsprpred.models.sklearn import SklearnModel
 from qsprpred.models.tasks import TargetTasks
@@ -14,7 +13,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
-from benchmarks.settings import DataPrepSettings, BenchmarkSettings
+from qsprpred.benchmarks.settings import DataPrepSettings, BenchmarkSettings
 from tools import PapyrusForBenchmark
 
 START_FRESH = False  # set True to run all replicas from scratch
