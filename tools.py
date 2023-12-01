@@ -1,12 +1,11 @@
 import os
-import random
-import string
 import subprocess
 import sys
 
 import pandas as pd
 from qsprpred.data.data import MoleculeTable
 from qsprpred.data.sources.papyrus import Papyrus
+from qsprpred.utils.stringops import get_random_string
 
 
 class PapyrusForBenchmark(Papyrus):
@@ -33,10 +32,6 @@ class PapyrusForBenchmark(Papyrus):
             use_existing=True,
             **kwargs,
         )
-
-
-def get_random_string():
-    return ''.join(random.choice(string.ascii_letters) for i in range(10))
 
 
 def save_temp(ds, index):

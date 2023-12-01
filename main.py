@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 runner = BenchmarkRunner(SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE)
-runner.run()
-results = pd.read_table(RESULTS_FILE)
+results = runner.run()
 results.DataSet = results.DataSet.apply(lambda x: x.split("_")[0])
 results.Algorithm = results.Algorithm.apply(lambda x: x.split(".")[-1])
 # plot model performance
