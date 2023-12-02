@@ -13,7 +13,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
-from qsprpred.benchmarks.settings import DataPrepSettings, BenchmarkSettings
+from qsprpred.benchmarks import DataPrepSettings, BenchmarkSettings
 from tools import PapyrusForBenchmark
 
 START_FRESH = False  # set True to run all replicas from scratch
@@ -119,6 +119,3 @@ if os.path.exists(MODELS_DIR) and RESET_MODELS:
     shutil.rmtree(MODELS_DIR)
 if os.path.exists(RESULTS_FILE) and RESET_MODELS:
     os.remove(RESULTS_FILE)
-SETTINGS.toFile(f"{DATA_DIR}/{NAME}.json")
-print(f"Will perform {SETTINGS.n_runs} replica runs.")
-

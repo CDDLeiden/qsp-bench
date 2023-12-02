@@ -1,8 +1,8 @@
-from qsprpred.benchmarks import BenchmarkRunner
-from settings import SETTINGS, N_PROC, RESULTS_FILE, DATA_DIR
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pandas as pd
+
+from qsprpred.benchmarks import BenchmarkRunner
+from settings import SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE
 
 runner = BenchmarkRunner(SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE)
 results = runner.run()
