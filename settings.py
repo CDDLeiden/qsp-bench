@@ -17,10 +17,10 @@ from qsprpred.benchmarks import DataPrepSettings, BenchmarkSettings
 from tools import PapyrusForBenchmark
 
 START_FRESH = False  # set True to run all replicas from scratch
-RESET_MODELS = True  # set True to reset all models
+RESET_MODELS = False  # set True to reset all models
 NAME = "ExampleBenchmark"  # name of the benchmark
 N_REPLICAS = 3  # number of repetitions per experiment
-SEED = 42  # seed for random operations (seed for all random states)
+SEED = 42  # randomSeed for random operations (randomSeed for all random states)
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 MODELS_DIR = f"{DATA_DIR}/models"  # directory to store models
 N_PROC = 12  # number of processes to use for parallelization

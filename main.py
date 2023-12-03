@@ -5,7 +5,7 @@ from qsprpred.benchmarks import BenchmarkRunner
 from settings import SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE
 
 runner = BenchmarkRunner(SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE)
-results = runner.run()
+results = runner.run(raise_errors=True)
 results.DataSet = results.DataSet.apply(lambda x: x.split("_")[0])
 results.Algorithm = results.Algorithm.apply(lambda x: x.split(".")[-1])
 # plot model performance
