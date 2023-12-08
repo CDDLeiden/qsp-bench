@@ -2,9 +2,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from qsprpred.benchmarks import BenchmarkRunner
-from settings import SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE
+from common_settings import SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE
+from multitask_settings import clustersplit_settings, randomsplit_settings
 
-runner = BenchmarkRunner(SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE)
+settings = SETTINGS
+#settings = { **SETTINGS, **clustersplit_settings() }
+#settings = { **SETTINGS, **randomsplit_settings() }
+
+runner = BenchmarkRunner(settings, N_PROC, DATA_DIR, RESULTS_FILE)
 results = runner.run(raise_errors=True)
 results.DataSet = results.DataSet.apply(lambda x: x.split("_")[0])
 results.Algorithm = results.Algorithm.apply(lambda x: x.split(".")[-1])
@@ -24,27 +29,3 @@ for score_func in results.ScoreFunc.unique():
     plt.clf()
     plt.close()
 
-# plot bias data
-# for value in [
-#     "knn1",
-#     "lr",
-#     "rf",
-#     "svm",
-#     "AA-AI",
-#     "II-IA",
-#     "(AA-AI)+(II-IA)"
-# ]:
-#     plt.ylim([0, 1])
-#     if value in ["AA-AI", "II-IA", "(AA-AI)+(II-IA)"]:
-#         plt.ylim([0, 0.5])
-#     plt.title(setting['dataset_name'])
-#     sns.boxplot(
-#         data=results_bias,
-#         x="gamma",
-#         y=value,
-#         hue="sim_threshold",
-#         palette=sns.color_palette('bright')
-#     )
-#     plt.savefig(f"{setting['dataset_name']}_results_bias_{value}.png")
-#     plt.clf()
-#     plt.close()
