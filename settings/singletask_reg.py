@@ -3,9 +3,8 @@ from .data_sources import PapyrusForBenchmark
 from qsprpred import TargetProperty, TargetTasks
 from qsprpred.models import SklearnModel, TestSetAssessor
 from qsprpred.benchmarks import BenchmarkSettings
-from sklearn.naive_bayes import GaussianNB
-from xgboost import XGBClassifier
-from qsprpred.extra.gpu.models.dnn import DNNModel
+from xgboost import XGBRegressor
+from qsprpred.extra.gpu.models.pyboost import PyBoostModel
 
 # data sources
 DATA_SOURCES = [
@@ -17,23 +16,18 @@ DATA_SOURCES = [
 
 MODELS=[
     SklearnModel(
-        name="GaussianNB",
-        alg=GaussianNB,
+        name="XGBR",
+        alg=XGBRegressor,
         base_dir=f"{MODELS_DIR}/models",
     ),
-    SklearnModel(
-        name="XGBC",
-        alg=XGBClassifier,
-        base_dir=f"{MODELS_DIR}/models",
+    PyBoostModel(
+        name=f"{NAME}_PyBoost",
+        base_dir=MODELS_DIR,
+        parameters={
+            "loss": "mse",
+            "metric": "r2_score"
+        }
     ),
-    DNNModel(
-        base_dir=f"{MODELS_DIR}/models",
-        name="DNN",
-        parameters={'n_epochs': 100}, # maximum number of epochs to train for,
-        gpus=GPUS,
-        patience=3,
-        tol=0.02,
-    )
 ]
 
 TARGET_PROPS=[
@@ -42,16 +36,14 @@ TARGET_PROPS=[
         TargetProperty.fromDict(
             {
                 "name": "pchembl_value_Mean",
-                "task": TargetTasks.SINGLECLASS,
-                "th": [6.5]
+                "task": TargetTasks.REGRESSION,
             }
         )
     ],
 ]
 
 ASSESSORS=[
-    TestSetAssessor(scoring="roc_auc"),
-    TestSetAssessor(scoring="matthews_corrcoef", use_proba=False),
+    TestSetAssessor(scoring="r2"),
 ]
 
 # benchmark settings
