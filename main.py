@@ -6,6 +6,9 @@ from qsprpred.benchmarks import BenchmarkRunner, BenchmarkSettings
 settings_module = "settings.multitask_reg" \
     if "QSPBENCH_SETTINGS" not in os.environ \
     else os.environ["QSPBENCH_SETTINGS"]
+# settings_module = "settings.singletask_class" \
+#     if "QSPBENCH_SETTINGS" not in os.environ \
+#     else os.environ["QSPBENCH_SETTINGS"]
 os.environ["QSPBENCH_SETTINGS"] = settings_module
 settings_module = import_module(settings_module)
 settings = BenchmarkSettings(
