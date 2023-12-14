@@ -7,12 +7,12 @@ from qsprpred.data.descriptors.sets import FingerprintSet
 
 START_FRESH = False  # set True to run all replicas from scratch
 RESET_MODELS = False  # set True to reset all models
-NAME = "ExampleBenchmark"  # name of the benchmark
+NAME = os.environ["QSPBENCH_SETTINGS"].split(".")[-1]  # name of the benchmark
 SEED = 42  # random seed
 N_REPLICAS = 15  # number of repetitions per experiment
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 MODELS_DIR = f"{DATA_DIR}/models"  # directory to store models
-N_PROC = 12  # number of processes to use for parallelization
+N_PROC = os.cpu_count()  # number of processes to use for parallelization
 RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 
 # descriptors
