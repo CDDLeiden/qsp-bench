@@ -20,21 +20,24 @@ class PapyrusForBenchmark(Papyrus):
         )
         self.accKeys = sorted(acc_keys)
         self.nSamples = n_samples
+        self.dataDir = data_dir
 
     def getData(
         self,
         name: str | None = None,
         **kwargs,
     ) -> MoleculeTable:
+        name = name or "_".join(self.accKeys)
         return super().getData(
-            name=name or "_".join(self.accKeys),
+            name=name,
             acc_keys=self.accKeys,
             quality="high",
             activity_types="all",
             drop_duplicates=True,
             use_existing=True,
+            output_dir=self.dataDir,
             **kwargs,
-        ).sample(self.nSamples)
+        ).sample(self.nSamples, name)
 
 
 class PapyrusForBenchmarkMT(PapyrusForBenchmark):
@@ -45,14 +48,9 @@ class PapyrusForBenchmarkMT(PapyrusForBenchmark):
         **kwargs,
     ) -> MoleculeTable:
         prior = super().getData(
-            name=name or "_".join(self.accKeys),
-            acc_keys=self.accKeys,
-            quality="high",
-            activity_types="all",
-            drop_duplicates=True,
-            use_existing=True,
+            name=name,
             **kwargs,
-        ).sample(self.nSamples)
+        )
         df = prior.getDF()
         df = df.pivot(index="SMILES", columns="accession", values="pchembl_value_Mean")
         df.columns.name = None
@@ -60,6 +58,7 @@ class PapyrusForBenchmarkMT(PapyrusForBenchmark):
         return MoleculeTable(
             name=prior.name,
             df=df,
+            store_dir=self.dataDir,
             **kwargs
         )
 
@@ -69,9 +68,12 @@ class PapyrusForBenchmarkMT(PapyrusForBenchmark):
         name: str | None = None,
         **kwargs
     ) -> QSPRDataset:
-        kwargs["target_imputer"] = SimpleImputer(strategy="mean")
-        return super().getDataSet(
-            target_props=target_props,
-            name=name,
+        mt = self.getData(name, **kwargs)
+        name = name or mt.name
+        return QSPRDataset.fromMolTable(
+            mt,
+            target_props,
+            name,
+            target_imputer=SimpleImputer(strategy="median"),
             **kwargs
         )
