@@ -1,3 +1,4 @@
+from sklearn.impute import SimpleImputer
 from sklearn.neighbors import KNeighborsRegressor
 
 from qsprpred import TargetProperty
@@ -11,7 +12,7 @@ from .base import *
 DATA_SOURCES = [
     PapyrusForBenchmarkMT(
         ["P30542", "P29274", "P29275", "P0DMS8"],
-        f"{DATA_DIR}/sets", n_samples=100
+        f"{DATA_DIR}/sets", n_samples=400
     ),
 ]
 
@@ -34,17 +35,40 @@ MODELS = [
 # target properties
 TARGET_PROPS = [
     [
-        TargetProperty.fromDict({"name": "P0DMS8", "task": "REGRESSION"}),
-        TargetProperty.fromDict({"name": "P29274", "task": "REGRESSION"}),
-        TargetProperty.fromDict({"name": "P29275", "task": "REGRESSION"}),
-        TargetProperty.fromDict({"name": "P30542", "task": "REGRESSION"})
+        TargetProperty.fromDict({
+            "name": "P0DMS8",
+            "task": "REGRESSION",
+            "imputer": SimpleImputer(strategy="median")
+        }),
+        TargetProperty.fromDict({
+            "name": "P29274",
+            "task": "REGRESSION",
+            "imputer": SimpleImputer(strategy="median")
+        }),
+        TargetProperty.fromDict({
+            "name": "P29275",
+            "task": "REGRESSION",
+            "imputer": SimpleImputer(strategy="median")
+        }),
+        TargetProperty.fromDict({
+            "name": "P30542",
+            "task": "REGRESSION",
+            "imputer": SimpleImputer(strategy="median")
+        })
     ],
 ]
 
 # assessors
 ASSESSORS = [
-    TestSetAssessor(scoring="r2"),
-    TestSetAssessor(scoring="neg_mean_squared_error", use_proba=False)
+    TestSetAssessor(
+        scoring="r2",
+        split_multitask_scores=True
+    ),
+    TestSetAssessor(
+        scoring="neg_mean_squared_error",
+        use_proba=False,
+        split_multitask_scores=True
+    ),
 ]
 
 # benchmark settings
