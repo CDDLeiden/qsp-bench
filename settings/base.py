@@ -1,5 +1,6 @@
 import os
 import shutil
+import torch
 
 from qsprpred.benchmarks import DataPrepSettings
 from qsprpred.data import RandomSplit, ClusterSplit
@@ -14,6 +15,7 @@ DATA_DIR = f"./data/{NAME}"  # directory to store data
 MODELS_DIR = f"{DATA_DIR}/models"  # directory to store models
 N_PROC = os.cpu_count()  # number of processes to use for parallelization
 RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
+GPUS = list(range(torch.cuda.device_count()))
 
 # descriptors
 DESCRIPTORS = [
