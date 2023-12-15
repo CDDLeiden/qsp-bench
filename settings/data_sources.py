@@ -1,7 +1,4 @@
-from sklearn.impute import SimpleImputer
-
-from qsprpred import TargetProperty
-from qsprpred.data import MoleculeTable, QSPRDataset
+from qsprpred.data import MoleculeTable
 from qsprpred.data.sources.papyrus import Papyrus
 
 
@@ -16,7 +13,7 @@ class PapyrusForBenchmark(Papyrus):
         super().__init__(
             data_dir=data_dir,
             version="05.6",
-            plus_only=True
+            plus_only=True,
         )
         self.accKeys = sorted(acc_keys)
         self.nSamples = n_samples
@@ -33,7 +30,7 @@ class PapyrusForBenchmark(Papyrus):
             acc_keys=self.accKeys,
             quality="high",
             activity_types="all",
-            drop_duplicates=True,
+            drop_duplicates=False,
             use_existing=True,
             output_dir=self.dataDir,
             **kwargs,
@@ -59,21 +56,5 @@ class PapyrusForBenchmarkMT(PapyrusForBenchmark):
             name=prior.name,
             df=df,
             store_dir=self.dataDir,
-            **kwargs
-        )
-
-    def getDataSet(
-        self,
-        target_props: list[TargetProperty | dict],
-        name: str | None = None,
-        **kwargs
-    ) -> QSPRDataset:
-        mt = self.getData(name, **kwargs)
-        name = name or mt.name
-        return QSPRDataset.fromMolTable(
-            mt,
-            target_props,
-            name,
-            target_imputer=SimpleImputer(strategy="median"),
             **kwargs
         )
