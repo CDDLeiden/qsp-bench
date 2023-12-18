@@ -3,6 +3,7 @@ import pandas as pd
 from qsprpred import TargetProperty
 from qsprpred.data import MoleculeTable, QSPRDataset
 from qsprpred.data.sources.papyrus import Papyrus
+from qsprpred.logs import logger
 
 
 class PapyrusForBenchmark(Papyrus):
@@ -41,7 +42,8 @@ class PapyrusForBenchmark(Papyrus):
         if self.nSamples is None:
             return ret
         else:
-            return ret.sample(self.nSamples, name)
+            n_samples = min(self.nSamples, len(ret))
+            return ret.sample(n_samples, name)
 
     def getDataSet(
         self,
@@ -74,8 +76,10 @@ class PapyrusForBenchmarkMT(PapyrusForBenchmark):
         if n_samples is not None:
             dfs_sample = []
             for acc in self.accKeys:
-                dfs_sample.append(df[df.accession == acc].sample(n_samples))
+                df_acc = df[df["accession"] == acc]
+                dfs_sample.append(df_acc.sample(min(n_samples, len(df_acc))))
             df = pd.concat(dfs_sample)
+            logger.info(f"Sampled {len(df)} molecules for {name}")
         df = df.pivot(index="SMILES", columns="accession", values="pchembl_value_Mean")
         df.columns.name = None
         df.reset_index(inplace=True)
