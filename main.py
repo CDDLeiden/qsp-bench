@@ -1,7 +1,14 @@
+import logging
+
 import os
 from importlib import import_module
 
-from qsprpred.benchmarks import BenchmarkRunner, BenchmarkSettings
+from qsprpred.logs import logger, setLogger
+from qsprpred.benchmarks import BenchmarkSettings
+from utils import MyRunner
+
+logger.setLevel(logging.DEBUG)
+setLogger(logger)
 
 settings_module = "settings.singletask_reg" \
     if "QSPBENCH_SETTINGS" not in os.environ \
@@ -19,7 +26,7 @@ settings = BenchmarkSettings(
     models=settings_module.MODELS,
     assessors=settings_module.ASSESSORS,
 )
-runner = BenchmarkRunner(
+runner = MyRunner(
     settings,
     settings_module.N_PROC,
     settings_module.DATA_DIR,
