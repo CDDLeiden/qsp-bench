@@ -1,5 +1,35 @@
+from multiprocessing import Lock
+
 from matplotlib import pyplot as plt
 import seaborn as sns
+
+from qsprpred.benchmarks import Replica, BenchmarkRunner
+
+lock_init = Lock()
+lock_assess = Lock()
+
+
+class MyReplica(Replica):
+
+    def initModel(self):
+        if type(self.model).__name__ == "PyBoostModel":
+            with lock_init:
+                super().initModel()
+        else:
+            super().initModel()
+
+    def runAssessment(self):
+        if type(self.model).__name__ == "PyBoostModel":
+            with lock_assess:
+                super().runAssessment()
+        else:
+            super().runAssessment()
+
+
+class MyRunner(BenchmarkRunner):
+
+    def makeReplica(self, *args, **kwargs) -> Replica:
+        return MyReplica(*args, **kwargs)
 
 
 def make_box_plot(
