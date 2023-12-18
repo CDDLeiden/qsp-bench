@@ -9,10 +9,11 @@ from .data_sources import PapyrusForBenchmarkMT
 from .base import *
 
 # data sources
+ACC_KEYS = ["P30542", "P29274", "P29275", "P0DMS8"]
 DATA_SOURCES = [
     PapyrusForBenchmarkMT(
-        ["P30542", "P29274", "P29275", "P0DMS8"],
-        f"{DATA_DIR}/sets", n_samples=400
+        ACC_KEYS,
+        f"{DATA_DIR}/sets", n_samples=N_SAMPLES
     ),
 ]
 
@@ -22,7 +23,8 @@ MODELS = [
             base_dir=MODELS_DIR,
             parameters={
                 "loss": "mse",
-                "metric": "r2_score"
+                "metric": "r2_score",
+                "ntrees": 1000,
             }
         ),
         SklearnModel(

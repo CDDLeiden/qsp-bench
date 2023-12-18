@@ -1,49 +1,68 @@
+from sklearn.impute import SimpleImputer
+from sklearn.neighbors import KNeighborsRegressor
+
 from .base import *
 from .data_sources import PapyrusForBenchmark
-from qsprpred import TargetProperty, TargetTasks
+from qsprpred import TargetProperty
 from qsprpred.models import SklearnModel, TestSetAssessor
 from qsprpred.benchmarks import BenchmarkSettings
-from xgboost import XGBRegressor
 from qsprpred.extra.gpu.models.pyboost import PyBoostModel
 
 # data sources
 DATA_SOURCES = [
     PapyrusForBenchmark(
-        ["P30542", "P29274", "P29275", "P0DMS8"],
-        f"{DATA_DIR}/sets", n_samples=100
+        ["P30542"],
+        f"{DATA_DIR}/sets", n_samples=N_SAMPLES
+    ),
+    PapyrusForBenchmark(
+        ["P29274"],
+        f"{DATA_DIR}/sets", n_samples=N_SAMPLES
+    ),
+    PapyrusForBenchmark(
+        ["P29275"],
+        f"{DATA_DIR}/sets", n_samples=N_SAMPLES
+    ),
+    PapyrusForBenchmark(
+        ["P0DMS8"],
+        f"{DATA_DIR}/sets", n_samples=N_SAMPLES
     ),
 ]
 
-MODELS=[
-    SklearnModel(
-        name="XGBR",
-        alg=XGBRegressor,
-        base_dir=f"{MODELS_DIR}/models",
-    ),
+MODELS = [
     PyBoostModel(
         name=f"{NAME}_PyBoost",
         base_dir=MODELS_DIR,
         parameters={
             "loss": "mse",
-            "metric": "r2_score"
+            "metric": "r2_score",
+            "ntrees": 1000,
         }
     ),
+    SklearnModel(
+        alg=KNeighborsRegressor,
+        name=f"{NAME}_KNeighborsRegressor",
+        base_dir=MODELS_DIR,
+    )
 ]
 
-TARGET_PROPS=[
-    # one or more properties to model
-    [
-        TargetProperty.fromDict(
-            {
-                "name": "pchembl_value_Mean",
-                "task": TargetTasks.REGRESSION,
-            }
-        )
-    ],
+TARGET_PROPS = [
+    [TargetProperty.fromDict({
+        "name": "pchembl_value_Mean",
+        "task": "REGRESSION",
+        "imputer": SimpleImputer(strategy="median")
+    })],
 ]
 
-ASSESSORS=[
-    TestSetAssessor(scoring="r2"),
+ASSESSORS = [
+    TestSetAssessor(
+        scoring="r2",
+        split_multitask_scores=True
+    ),
+    TestSetAssessor(
+        scoring="neg_mean_squared_error",
+        use_proba=False,
+        split_multitask_scores=True
+    ),
 ]
 
 # benchmark settings
