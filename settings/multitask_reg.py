@@ -5,8 +5,8 @@ from qsprpred import TargetProperty
 from qsprpred.benchmarks import BenchmarkSettings
 from qsprpred.extra.gpu.models.pyboost import PyBoostModel
 from qsprpred.models import TestSetAssessor, SklearnModel
-from .data_sources import PapyrusForBenchmarkMT
-from .base import *
+from utils.settings.data_sources import PapyrusForBenchmarkMT
+from utils.settings.base import *
 
 # data sources
 ACC_KEYS = ["P30542", "P29274", "P29275", "P0DMS8"]

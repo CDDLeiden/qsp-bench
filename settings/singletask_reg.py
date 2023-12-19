@@ -1,8 +1,8 @@
 from sklearn.impute import SimpleImputer
 from sklearn.neighbors import KNeighborsRegressor
 
-from .base import *
-from .data_sources import PapyrusForBenchmark
+from utils.settings.base import *
+from utils.settings.data_sources import PapyrusForBenchmark
 from qsprpred import TargetProperty
 from qsprpred.models import SklearnModel, TestSetAssessor
 from qsprpred.benchmarks import BenchmarkSettings
