@@ -4,10 +4,9 @@ import os
 from importlib import import_module
 
 from qsprpred.logs import logger, setLogger
-from qsprpred.benchmarks import BenchmarkSettings
-from utils import MyRunner
+from qsprpred.benchmarks import BenchmarkSettings, BenchmarkRunner
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)  # set to DEBUG to see more info from QSPRpred
 setLogger(logger)
 
 settings_module = "settings.singletask_reg" \
@@ -26,7 +25,7 @@ settings = BenchmarkSettings(
     models=settings_module.MODELS,
     assessors=settings_module.ASSESSORS,
 )
-runner = MyRunner(
+runner = BenchmarkRunner(
     settings,
     settings_module.N_PROC,
     settings_module.DATA_DIR,
