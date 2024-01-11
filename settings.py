@@ -115,15 +115,15 @@ MODELS = [
     #    alg=XGBClassifier,
     #    base_dir=MODELS_DIR
     #),
-#    DNNModel(
-#        name="DNNModel",
-#        alg=STFullyConnected,
-#        data=dataset,
+    DNNModel(
+        name="DNNModel",
+        alg=STFullyConnected,
+        data=dataset,
         #patience=3,
         #tol=0.01,
-#        base_dir=MODELS_DIR,
+        base_dir=MODELS_DIR,
     #   #device=torch.device("cpu")
-#    )
+    )
 ]
 
 # assessors
