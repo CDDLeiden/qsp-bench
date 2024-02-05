@@ -51,7 +51,7 @@ class PapyrusForBenchmark(Papyrus):
         name: str | None = None,
         **kwargs
     ) -> QSPRDataset:
-        kwargs["store_format"] = "csv"
+        # kwargs["store_format"] = "csv"
         return super().getDataSet(
             target_props=target_props,
             name=name,

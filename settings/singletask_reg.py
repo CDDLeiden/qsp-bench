@@ -6,22 +6,23 @@ from utils.settings.data_sources import PapyrusForBenchmark
 from qsprpred import TargetProperty
 from qsprpred.models import SklearnModel, TestSetAssessor
 from qsprpred.benchmarks import BenchmarkSettings
-from qsprpred.extra.gpu.models.pyboost import PyBoostModel
+# from qsprpred.extra.gpu.models.pyboost import PyBoostModel
+from qsprpred.extra.models.random import RandomModel, MedianDistributionAlgorithm, NormalDistributionAlgorithm, ScipyDistributionAlgorithm
 
 # data sources
 DATA_SOURCES = [
-    PapyrusForBenchmark(
-        ["P30542"],
-        f"{DATA_DIR}/sets", n_samples=N_SAMPLES
-    ),
-    PapyrusForBenchmark(
-        ["P29274"],
-        f"{DATA_DIR}/sets", n_samples=N_SAMPLES
-    ),
-    PapyrusForBenchmark(
-        ["P29275"],
-        f"{DATA_DIR}/sets", n_samples=N_SAMPLES
-    ),
+    # PapyrusForBenchmark(
+    #     ["P30542"],
+    #     f"{DATA_DIR}/sets", n_samples=N_SAMPLES
+    # ),
+    # PapyrusForBenchmark(
+    #     ["P29274"],
+    #     f"{DATA_DIR}/sets", n_samples=N_SAMPLES
+    # ),
+    # PapyrusForBenchmark(
+    #     ["P29275"],
+    #     f"{DATA_DIR}/sets", n_samples=N_SAMPLES
+    # ),
     PapyrusForBenchmark(
         ["P0DMS8"],
         f"{DATA_DIR}/sets", n_samples=N_SAMPLES
@@ -29,20 +30,34 @@ DATA_SOURCES = [
 ]
 
 MODELS = [
-    PyBoostModel(
-        name=f"{NAME}_PyBoost",
+    RandomModel(
+        name=f"{NAME}_Random",
         base_dir=MODELS_DIR,
-        parameters={
-            "loss": "mse",
-            "metric": "r2_score",
-            "ntrees": 1000,
-        }
+        alg=MedianDistributionAlgorithm
     ),
-    SklearnModel(
-        alg=KNeighborsRegressor,
-        name=f"{NAME}_KNeighborsRegressor",
+    RandomModel(
+        name=f"{NAME}_Random",
         base_dir=MODELS_DIR,
-    )
+        alg=ScipyDistributionAlgorithm,
+        #Probably possible to provide scipy random distribution like so:
+        #parameters={
+        #   "distribution": sp.stats.norm    
+        #}
+    ),
+    # PyBoostModel(
+    #     name=f"{NAME}_PyBoost",
+    #     base_dir=MODELS_DIR,
+    #     parameters={
+    #         "loss": "mse",
+    #         "metric": "r2_score",
+    #         "ntrees": 1000,
+    #     }
+    # ),
+    # SklearnModel(
+    #     alg=KNeighborsRegressor,
+    #     name=f"{NAME}_KNeighborsRegressor",
+    #     base_dir=MODELS_DIR,
+    # )
 ]
 
 TARGET_PROPS = [

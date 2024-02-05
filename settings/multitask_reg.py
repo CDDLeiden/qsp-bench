@@ -3,8 +3,9 @@ from sklearn.neighbors import KNeighborsRegressor
 
 from qsprpred import TargetProperty
 from qsprpred.benchmarks import BenchmarkSettings
-from qsprpred.extra.gpu.models.pyboost import PyBoostModel
+# from qsprpred.extra.gpu.models.pyboost import PyBoostModel
 from qsprpred.models import TestSetAssessor, SklearnModel
+from qsprpred.extra.models.random import RandomModel
 from utils.settings.data_sources import PapyrusForBenchmarkMT
 from utils.settings.base import *
 
@@ -18,19 +19,24 @@ DATA_SOURCES = [
 ]
 
 MODELS = [
-        PyBoostModel(
-            name=f"{NAME}_PyBoost",
-            base_dir=MODELS_DIR,
-            parameters={
-                "loss": "mse",
-                "metric": "r2_score",
-                "ntrees": 1000,
-            }
-        ),
+        # PyBoostModel(
+        #     name=f"{NAME}_PyBoost",
+        #     base_dir=MODELS_DIR,
+        #     parameters={
+        #         "loss": "mse",
+        #         "metric": "r2_score",
+        #         "ntrees": 1000,
+        #     }
+        # ),
         SklearnModel(
             alg=KNeighborsRegressor,
             name=f"{NAME}_KNeighborsRegressor",
             base_dir=MODELS_DIR,
+        ),
+        RandomModel(
+            name=f"{NAME}_RandomModel",
+            base_dir=MODELS_DIR,
+            alg=ScipyDistributionAlgorithm,
         )
     ]
 

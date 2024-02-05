@@ -2,8 +2,8 @@ import os
 import shutil
 
 from qsprpred.benchmarks import DataPrepSettings
-from qsprpred.data import GBMTRandomSplit, ClusterSplit, RandomSplit
-from qsprpred.data.descriptors.sets import FingerprintSet
+from qsprpred.data import ClusterSplit, RandomSplit
+from qsprpred.data.descriptors.fingerprints import MorganFP
 
 START_FRESH = True  # set True to run all replicas from scratch
 RESET_MODELS = True  # set True to reset all models
@@ -19,23 +19,21 @@ RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 
 # descriptors
 DESCRIPTORS = [
-    [FingerprintSet("MorganFP", radius=3, nBits=2048)],
+    [MorganFP(radius=3, nBits=2048)],
 ]
 
 # data preparation settings
 DATA_PREPS = [
     DataPrepSettings(
         split=RandomSplit(test_fraction=0.2),
-        data_filters=None
     ),
-    DataPrepSettings(
-        split=GBMTRandomSplit(test_fraction=0.2),
-        data_filters=None
-    ),
-    DataPrepSettings(
-        split=ClusterSplit(test_fraction=0.2),
-        data_filters=None
-    ),
+    # DataPrepSettings(
+    #     split=GBMTRandomSplit(test_fraction=0.2),
+    #     data_filters=None
+    # ),
+    # DataPrepSettings(
+    #     split=ClusterSplit(test_fraction=0.2),
+    # ),
 ]
 
 # create data directory
