@@ -6,9 +6,6 @@ from importlib import import_module
 from qsprpred.logs import logger, setLogger
 from qsprpred.benchmarks import BenchmarkSettings, BenchmarkRunner
 
-logger.setLevel(logging.DEBUG)
-setLogger(logger)
-BenchmarkRunner.logLevel = logging.DEBUG
 
 if "QSPBENCH_SETTINGS" not in os.environ:
     raise ValueError(
@@ -33,6 +30,6 @@ runner = BenchmarkRunner(
     settings,
     settings_module.N_PROC,
     settings_module.DATA_DIR,
-    settings_module.RESULTS_FILE
+    settings_module.RESULTS_FILE,
 )
 runner.run(raise_errors=True)

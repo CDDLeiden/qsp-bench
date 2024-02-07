@@ -6,8 +6,8 @@ from qsprpred import TargetProperty
 from qsprpred.benchmarks import BenchmarkSettings
 from qsprpred.models import TestSetAssessor, SklearnModel
 from qsprpred.extra.models.random import RandomModel, MedianDistributionAlgorithm
-from utils.settings.data_sources import PapyrusForBenchmarkMT
-from utils.settings.base import *
+from utils.data_sources import PapyrusForBenchmarkMT
+from settings.base import *
 
 # data sources
 ACC_KEYS = ["P30542", "P29274", "P29275", "P0DMS8"]
