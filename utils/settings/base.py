@@ -11,7 +11,7 @@ N_SAMPLES = None  # samples per target to use for benchmarking, use None for all
 NAME = os.environ["QSPBENCH_SETTINGS"].split(".")[-1]  # name of the benchmark
 NAME = NAME + (f"_{N_SAMPLES}" if N_SAMPLES else "")  # append number of samples
 SEED = 42  # random seed
-N_REPLICAS = 2  # number of repetitions per experiment
+N_REPLICAS = 30  # number of repetitions per experiment
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 MODELS_DIR = f"{DATA_DIR}/models"  # directory to store models
 N_PROC = os.cpu_count()  # number of processes to use for parallelization
@@ -27,13 +27,9 @@ DATA_PREPS = [
     DataPrepSettings(
         split=RandomSplit(test_fraction=0.2),
     ),
-    # DataPrepSettings(
-    #     split=GBMTRandomSplit(test_fraction=0.2),
-    #     data_filters=None
-    # ),
-    # DataPrepSettings(
-    #     split=ClusterSplit(test_fraction=0.2),
-    # ),
+    DataPrepSettings(
+        split=ClusterSplit(test_fraction=0.2),
+    ),
 ]
 
 # create data directory
