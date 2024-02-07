@@ -1,7 +1,6 @@
 import pandas as pd
 
-from qsprpred import TargetProperty
-from qsprpred.data import MoleculeTable, QSPRDataset
+from qsprpred.data import MoleculeTable
 from qsprpred.data.sources.papyrus import Papyrus
 from qsprpred.logs import logger
 
@@ -44,19 +43,6 @@ class PapyrusForBenchmark(Papyrus):
         else:
             n_samples = min(self.nSamples, len(ret))
             return ret.sample(n_samples, name)
-
-    def getDataSet(
-        self,
-        target_props: list[TargetProperty | dict],
-        name: str | None = None,
-        **kwargs
-    ) -> QSPRDataset:
-        # kwargs["store_format"] = "csv"
-        return super().getDataSet(
-            target_props=target_props,
-            name=name,
-            **kwargs,
-        )
 
 
 class PapyrusForBenchmarkMT(PapyrusForBenchmark):
