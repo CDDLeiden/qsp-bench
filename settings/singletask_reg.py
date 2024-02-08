@@ -9,11 +9,7 @@ from qsprpred import TargetProperty
 from qsprpred.models import TestSetAssessor, SklearnModel
 from qsprpred.benchmarks import BenchmarkSettings
 
-from qsprpred.extra.models.random import (
-    RandomModel,
-    MedianDistributionAlgorithm,
-    ScipyDistributionAlgorithm,
-)
+from qsprpred.extra.models.random import RandomModel, MedianDistributionAlgorithm
 
 # data sources
 DATA_SOURCES = [
@@ -25,7 +21,7 @@ DATA_SOURCES = [
 
 MODELS = [
     RandomModel(
-        name=f"{NAME}_Random", base_dir=MODELS_DIR, alg=MedianDistributionAlgorithm
+        name=f"{NAME}_MedianModel", base_dir=MODELS_DIR, alg=MedianDistributionAlgorithm
     ),
     SklearnModel(
         alg=KNeighborsRegressor,
@@ -34,7 +30,7 @@ MODELS = [
     ),
     SklearnModel(
         alg=XGBRegressor,
-        name=f"{NAME}_XGBRegressor_MOT",
+        name=f"{NAME}_XGBRegressor",
         base_dir=MODELS_DIR,
         parameters={
             "n_jobs": 1,
