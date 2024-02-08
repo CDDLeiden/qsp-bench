@@ -1,4 +1,5 @@
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import root_mean_squared_error
 from sklearn.neighbors import KNeighborsRegressor
 from xgboost import XGBRegressor
 
@@ -83,9 +84,7 @@ TARGET_PROPS = [
 # assessors
 ASSESSORS = [
     TestSetAssessor(scoring="r2", split_multitask_scores=True),
-    TestSetAssessor(
-        scoring="neg_mean_squared_error", use_proba=False, split_multitask_scores=True
-    ),
+    TestSetAssessor(root_mean_squared_error, split_multitask_scores=True),
 ]
 
 # benchmark settings
