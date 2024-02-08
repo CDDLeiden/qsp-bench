@@ -42,7 +42,7 @@ TARGET_PROPS = [
     [
         TargetProperty.fromDict(
             {
-                "name": "pchembl_value_Mean",
+                "name": "pchembl_value_Median",
                 "task": "REGRESSION",
                 "imputer": SimpleImputer(strategy="median"),
             }
