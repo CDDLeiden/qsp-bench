@@ -2,15 +2,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 
-def make_box_plot(
-        data,
-        x,
-        y,
-        hue,
-        plot_name="boxplot",
-        out_dir="./data/",
-        ylim=(0, 1)
-):
+def make_box_plot(data, x, y, hue, plot_name="boxplot", out_dir="./data/", ylim=(0, 1)):
     """
     Make a box plot with given settings.
 
@@ -33,10 +25,8 @@ def make_box_plot(
             x=x,
             y=y,
             hue=hue,
-            palette=sns.color_palette('bright')
+            # palette=sns.color_palette('bright')
         )
-        plt.savefig(
-            f"{out_dir}/{plot_name}_{score_func}_{x}_{y}_{hue}.png")
+        plt.savefig(f"{out_dir}/{plot_name}_{score_func}_{x}_{y}_{hue}.png")
         plt.clf()
         plt.close()
-
