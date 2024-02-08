@@ -14,7 +14,11 @@ SEED = 42  # random seed
 N_REPLICAS = 30  # number of repetitions per experiment
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 MODELS_DIR = f"{DATA_DIR}/models"  # directory to store models
-N_PROC = os.cpu_count()  # number of processes to use for parallelization
+N_PROC = (
+    os.cpu_count()
+    if "QSPBENCH_NPROC" not in os.environ
+    else int(os.environ["QSPBENCH_NPROC"])
+)  # number of processes to use
 RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 
 # descriptors
