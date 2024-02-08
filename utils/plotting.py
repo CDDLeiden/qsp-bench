@@ -15,7 +15,17 @@ def make_box_plot(data, x, y, hue, plot_name="boxplot", out_dir="./data/", ylim=
         out_dir (str): Directory to save plot to.
         ylim (tuple): Y-axis limits.
     """
-
+    colors = [
+        "#288AB5",
+        "#0E5655",
+        "#637E54",
+        "#D8D1A9",
+        "#E1AB24",
+        "#DA2715",
+        "#9A0320",
+    ]
+    # make into  seaborn palette
+    sns.set_palette(sns.color_palette(colors))
     for score_func in data.ScoreFunc.unique():
         df_ind = data.loc[(data.ScoreFunc == score_func)]
         plt.ylim(ylim)
@@ -25,7 +35,6 @@ def make_box_plot(data, x, y, hue, plot_name="boxplot", out_dir="./data/", ylim=
             x=x,
             y=y,
             hue=hue,
-            # palette=sns.color_palette('bright')
         )
         plt.savefig(f"{out_dir}/{plot_name}_{score_func}_{x}_{y}_{hue}.png")
         plt.clf()
