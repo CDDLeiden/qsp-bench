@@ -1,50 +1,33 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
+import os
+from importlib import import_module
 
-from qsprpred.benchmarks import BenchmarkRunner
-from settings import SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE
+from qsprpred.benchmarks import BenchmarkSettings, BenchmarkRunner
 
-runner = BenchmarkRunner(SETTINGS, N_PROC, DATA_DIR, RESULTS_FILE)
-results = runner.run(raise_errors=True)
-results.DataSet = results.DataSet.apply(lambda x: x.split("_")[0])
-results.Algorithm = results.Algorithm.apply(lambda x: x.split(".")[-1])
-# plot model performance
-for score_func in results.ScoreFunc.unique():
-    df_ind = results.loc[(results.ScoreFunc == score_func)]
-    plt.ylim([0, 1])
-    plt.title(score_func)
-    sns.boxplot(
-        data=df_ind,
-        x="DataSet",
-        y="Score",
-        hue="Algorithm",
-        palette=sns.color_palette('bright')
+
+if "QSPBENCH_SETTINGS" not in os.environ:
+    raise ValueError(
+        "Please set the QSPBENCH_SETTINGS environment "
+        "variable with an import path to your settings module."
     )
-    plt.savefig(f"{DATA_DIR}/{score_func}_results.png")
-    plt.clf()
-    plt.close()
-
-# plot bias data
-# for value in [
-#     "knn1",
-#     "lr",
-#     "rf",
-#     "svm",
-#     "AA-AI",
-#     "II-IA",
-#     "(AA-AI)+(II-IA)"
-# ]:
-#     plt.ylim([0, 1])
-#     if value in ["AA-AI", "II-IA", "(AA-AI)+(II-IA)"]:
-#         plt.ylim([0, 0.5])
-#     plt.title(setting['dataset_name'])
-#     sns.boxplot(
-#         data=results_bias,
-#         x="gamma",
-#         y=value,
-#         hue="sim_threshold",
-#         palette=sns.color_palette('bright')
-#     )
-#     plt.savefig(f"{setting['dataset_name']}_results_bias_{value}.png")
-#     plt.clf()
-#     plt.close()
+settings_module = os.environ["QSPBENCH_SETTINGS"]
+os.environ["QSPBENCH_SETTINGS"] = settings_module
+settings_module = import_module(settings_module)
+settings = BenchmarkSettings(
+    name=settings_module.NAME,
+    n_replicas=settings_module.N_REPLICAS,
+    random_seed=settings_module.SEED,
+    data_sources=settings_module.DATA_SOURCES,
+    descriptors=settings_module.DESCRIPTORS,
+    target_props=settings_module.TARGET_PROPS,
+    prep_settings=settings_module.DATA_PREPS,
+    models=settings_module.MODELS,
+    assessors=settings_module.ASSESSORS,
+)
+runner = BenchmarkRunner(
+    settings,
+    settings_module.N_PROC,
+    settings_module.DATA_DIR,
+    settings_module.RESULTS_FILE,
+)
+runner.run(raise_errors=True)
+print("Benchmark finished.")
