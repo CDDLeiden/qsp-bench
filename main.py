@@ -1,9 +1,6 @@
-import logging
-
 import os
 from importlib import import_module
 
-from qsprpred.logs import logger, setLogger
 from qsprpred.benchmarks import BenchmarkSettings, BenchmarkRunner
 
 
@@ -33,3 +30,4 @@ runner = BenchmarkRunner(
     settings_module.RESULTS_FILE,
 )
 runner.run(raise_errors=True)
+print("Benchmark finished.")
