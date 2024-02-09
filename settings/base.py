@@ -7,11 +7,11 @@ from qsprpred.data.descriptors.fingerprints import MorganFP
 
 START_FRESH = False  # set True to delete all previous outputs
 RESET_MODELS = True  # set True to reset all models
-N_SAMPLES = 500  # samples per target to use for benchmarking, use None for all data
+N_SAMPLES = None  # samples per target to use for benchmarking, use None for all data
 NAME = os.environ["QSPBENCH_SETTINGS"].split(".")[-1]  # name of the benchmark
 NAME = NAME + (f"_{N_SAMPLES}" if N_SAMPLES else "")  # append number of samples
 SEED = 42  # random seed
-N_REPLICAS = 1  # number of repetitions per experiment
+N_REPLICAS = 30  # number of repetitions per experiment
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 MODELS_DIR = f"{DATA_DIR}/models"  # directory to store models
 N_PROC = (

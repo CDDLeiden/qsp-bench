@@ -8,7 +8,7 @@ DESCRIPTORS = [
 
 MODELS = [
     ChempropModel(
-        name="Chemprop",
+        name=f"{NAME}_Chemprop",
         base_dir=MODELS_DIR,
     ),
 ]

@@ -87,27 +87,35 @@ TARGET_PROPS = [
 ]
 
 MODELS = [
-    SklearnModel(name="XGBClassifier", alg=XGBClassifier, base_dir=MODELS_DIR),
-    SklearnModel(name="GaussianNB", alg=GaussianNB, base_dir=MODELS_DIR),
-    SklearnModel(
-        name="SVC", alg=SVC, base_dir=MODELS_DIR, parameters={"probability": True}
-    ),
-    SklearnModel(name="MLPClassifier", alg=MLPClassifier, base_dir=MODELS_DIR),
-    RandomModel(
-        name=f"{NAME}_MedianModel",
-        base_dir=MODELS_DIR,
-        alg=RatioDistributionAlgorithm,
-    ),
     DNNModel(
         name="DNN",
         alg=STFullyConnected,
         base_dir=MODELS_DIR,
     ),
+    SklearnModel(
+        name=f"{NAME}_XGBClassifier",
+        alg=XGBClassifier,
+        base_dir=MODELS_DIR,
+        parameters={"n_jobs": 1},
+    ),
+    SklearnModel(name=f"{NAME}_GaussianNB", alg=GaussianNB, base_dir=MODELS_DIR),
+    SklearnModel(
+        name="SVC",
+        alg=SVC,
+        base_dir=MODELS_DIR,
+        parameters={"probability": True, "max_iter": 1000},
+    ),
+    SklearnModel(name=f"{NAME}_MLPClassifier", alg=MLPClassifier, base_dir=MODELS_DIR),
+    RandomModel(
+        name=f"{NAME}_MedianModel",
+        base_dir=MODELS_DIR,
+        alg=RatioDistributionAlgorithm,
+    ),
 ]
 
 # assessors
 ASSESSORS = [
-    # TestSetAssessor(scoring="roc_auc", monitor=NullMonitor(), use_proba=True),
+    TestSetAssessor(scoring="roc_auc", monitor=NullMonitor(), use_proba=True),
     TestSetAssessor(
         scoring="matthews_corrcoef", monitor=NullMonitor(), use_proba=False
     ),
