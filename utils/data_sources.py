@@ -1,6 +1,9 @@
+import os
+
 import pandas as pd
 
 from qsprpred.data import MoleculeTable
+from qsprpred.data.sources import DataSource
 from qsprpred.data.sources.papyrus import Papyrus
 from qsprpred.logs import logger
 
@@ -72,3 +75,34 @@ class PapyrusForBenchmarkMT(PapyrusForBenchmark):
         df.columns.name = None
         df.reset_index(inplace=True)
         return MoleculeTable(name=prior.name, df=df, store_dir=self.dataDir, **kwargs)
+
+
+class MoleculeNetSource(DataSource):
+    def __init__(
+        self,
+        name: str,
+        store_dir: str,
+        smiles_col: str = "smiles",
+        n_samples: int | None = None,
+    ):
+        self.storeDir = store_dir
+        self.name = name
+        self.smilesCol = smiles_col
+        self.nSamples = n_samples
+
+    def getData(self, name: str | None = None, **kwargs) -> MoleculeTable:
+        name = name or self.name
+        dataset_path = os.path.join(self.storeDir, f"{self.name}.csv")
+        df = pd.read_csv(dataset_path, header=0)
+        if self.nSamples is not None:
+            df = df.sample(self.nSamples)
+        ret = MoleculeTable(
+            df=df,
+            smiles_col=self.smilesCol,
+            name=name,
+            store_dir=self.storeDir,
+            **kwargs,
+        )
+        if not os.path.exists(ret.metaFile):
+            ret.save()
+        return ret

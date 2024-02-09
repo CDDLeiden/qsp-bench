@@ -6,7 +6,7 @@ from importlib import import_module
 from qsprpred.benchmarks import BenchmarkSettings, BenchmarkRunner
 from qsprpred.logs import logger
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 def main():
@@ -29,7 +29,6 @@ def main():
         models=settings_module.MODELS,
         assessors=settings_module.ASSESSORS,
     )
-
     runner = BenchmarkRunner(
         settings,
         settings_module.N_PROC,

@@ -1,22 +1,22 @@
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
-import pandas as pd
 
 import deepchem as dc
 from xgboost import XGBClassifier
 
 from qsprpred import TargetProperty, TargetTasks
 from qsprpred.benchmarks import BenchmarkSettings
-from qsprpred.data import MoleculeTable
-from qsprpred.data.sources import DataSource
 from qsprpred.extra.gpu.models.dnn import DNNModel
 from qsprpred.extra.gpu.models.neural_network import STFullyConnected
 from qsprpred.extra.models.random import RandomModel, RatioDistributionAlgorithm
 from qsprpred.models import SklearnModel, TestSetAssessor
 from qsprpred.models.monitors import NullMonitor
 from settings.base import *
+from utils.data_sources import MoleculeNetSource
 
+# MoleculeNet dataset settings
+# Add your own specs to the dictionary below
 sets_to_loads = {
     "HIV": {
         "loader": dc.molnet.load_hiv,
@@ -38,38 +38,7 @@ if not os.environ.get("QSPBENCH_MOLNETSET"):
     )
 DATASET = os.environ["QSPBENCH_MOLNETSET"]
 prop_name = sets_to_loads[DATASET]["loader"](data_dir=DATA_DIR, save_dir=DATA_DIR)[0][0]
-
-
-class MoleculeNetSource(DataSource):
-    def __init__(
-        self,
-        name: str,
-        store_dir: str,
-        smiles_col: str = "smiles",
-        n_samples: int | None = None,
-    ):
-        self.storeDir = store_dir
-        self.name = name
-        self.smilesCol = smiles_col
-        self.nSamples = n_samples
-
-    def getData(self, name: str | None = None, **kwargs) -> MoleculeTable:
-        name = name or self.name
-        dataset_path = os.path.join(self.storeDir, f"{self.name}.csv")
-        df = pd.read_csv(dataset_path, header=0)
-        if self.nSamples is not None:
-            df = df.sample(self.nSamples)
-        ret = MoleculeTable(
-            df=df,
-            smiles_col=self.smilesCol,
-            name=name,
-            store_dir=self.storeDir,
-            **kwargs,
-        )
-        if not os.path.exists(ret.metaFile):
-            ret.save()
-        return ret
-
+RESULTS_FILE = RESULTS_FILE.replace(".tsv", f"_{DATASET}_{prop_name}.tsv")
 
 # data sources
 DATA_SOURCES = [
@@ -86,6 +55,7 @@ TARGET_PROPS = [
     [TargetProperty(prop_name, TargetTasks.SINGLECLASS, th="precomputed")],
 ]
 
+# models
 MODELS = [
     DNNModel(
         name="DNN",
