@@ -11,7 +11,7 @@ N_SAMPLES = 500  # samples per target to use for benchmarking, use None for all 
 NAME = os.environ["QSPBENCH_SETTINGS"].split(".")[-1]  # name of the benchmark
 NAME = NAME + (f"_{N_SAMPLES}" if N_SAMPLES else "")  # append number of samples
 SEED = 42  # random seed
-N_REPLICAS = 30  # number of repetitions per experiment
+N_REPLICAS = 1  # number of repetitions per experiment
 DATA_DIR = f"./data/{NAME}"  # directory to store data
 MODELS_DIR = f"{DATA_DIR}/models"  # directory to store models
 N_PROC = (
@@ -20,6 +20,11 @@ N_PROC = (
     else int(os.environ["QSPBENCH_NPROC"])
 )  # number of processes to use
 RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
+GPUS = (
+    [int(x) for x in os.environ["QSPBENCH_GPUS"].split(",")]
+    if "QSPBENCH_GPUS" in os.environ
+    else None
+)  # list of GPUs to use
 
 # descriptors
 DESCRIPTORS = [
