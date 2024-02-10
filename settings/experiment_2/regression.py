@@ -1,33 +1,53 @@
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
-from sklearn.svm import SVC
+from sklearn.metrics import root_mean_squared_error
+from sklearn.neural_network import MLPRegressor
+from sklearn.svm import SVR
 
 import deepchem as dc
-from xgboost import XGBClassifier
+from xgboost import XGBRegressor
 
 from qsprpred import TargetProperty, TargetTasks
 from qsprpred.benchmarks import BenchmarkSettings
 from qsprpred.extra.gpu.models.dnn import DNNModel
 from qsprpred.extra.gpu.models.neural_network import STFullyConnected
-from qsprpred.extra.models.random import RandomModel, RatioDistributionAlgorithm
+from qsprpred.extra.models.random import RandomModel, MedianDistributionAlgorithm
 from qsprpred.models import SklearnModel, TestSetAssessor
 from qsprpred.models.monitors import NullMonitor
 from settings.base import *
 from utils.data_sources import MoleculeNetSource
 
+
+# some data sets might need unzipping first
+def unzip_with_gzip(file):
+    """Just unzip a file with gzip."""
+    import gzip
+    import shutil
+    import os
+
+    with gzip.open(file, "rb") as f_in:
+        new_file = file.replace(".gz", "")
+        with open(new_file, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    os.remove(file)
+    return new_file
+
+
 # MoleculeNet dataset settings
 # Add your own specs to the dictionary below
 sets_to_loads = {
-    "HIV": {
-        "loader": dc.molnet.load_hiv,
+    "Lipophilicity": {
+        "loader": dc.molnet.load_lipo,
         "smiles_col": "smiles",
     },
-    "bace": {
-        "loader": dc.molnet.load_bace_classification,
-        "smiles_col": "mol",
+    "delaney-processed": {
+        "loader": dc.molnet.load_delaney,
+        "smiles_col": "smiles",
     },
-    "BBBP": {
-        "loader": dc.molnet.load_bbbp,
+    "freesolv": {
+        "loader": dc.molnet.load_freesolv,
+        "smiles_col": "smiles",
+    },
+    "clearance": {
+        "loader": dc.molnet.load_clearance,
         "smiles_col": "smiles",
     },
 }
@@ -41,6 +61,9 @@ prop_name = sets_to_loads[DATASET]["loader"](data_dir=DATA_DIR, save_dir=DATA_DI
     0
 ]  # get the first property only
 RESULTS_FILE = RESULTS_FILE.replace(".tsv", f"_{DATASET}_{prop_name}.tsv")
+if DATASET == "freesolv" and not os.path.exists(f"{DATA_DIR}/freesolv.csv"):
+    # unzip the file
+    unzip_with_gzip(f"{DATA_DIR}/freesolv.csv.gz")
 
 # data sources
 DATA_SOURCES = [
@@ -54,7 +77,7 @@ DATA_SOURCES = [
 
 # target properties
 TARGET_PROPS = [
-    [TargetProperty(prop_name, TargetTasks.SINGLECLASS, th="precomputed")],
+    [TargetProperty(prop_name, TargetTasks.REGRESSION)],
 ]
 
 # models
@@ -65,35 +88,27 @@ MODELS = [
         base_dir=MODELS_DIR,
     ),
     SklearnModel(
-        name=f"{NAME}_XGBClassifier",
-        alg=XGBClassifier,
+        name=f"{NAME}_XGBRegressor",
+        alg=XGBRegressor,
         base_dir=MODELS_DIR,
         parameters={"n_jobs": 1},
     ),
-    SklearnModel(name=f"{NAME}_GaussianNB", alg=GaussianNB, base_dir=MODELS_DIR),
     SklearnModel(
-        name=f"{NAME}_SVC",
-        alg=SVC,
+        name=f"{NAME}_XGBRegressor",
+        alg=SVR,
         base_dir=MODELS_DIR,
-        parameters={"probability": True, "max_iter": 1000},
+        parameters={"max_iter": 1000},
     ),
-    SklearnModel(name=f"{NAME}_MLPClassifier", alg=MLPClassifier, base_dir=MODELS_DIR),
+    SklearnModel(name=f"{NAME}_MLPClassifier", alg=MLPRegressor, base_dir=MODELS_DIR),
     RandomModel(
-        name=f"{NAME}_RatioModel",
-        base_dir=MODELS_DIR,
-        alg=RatioDistributionAlgorithm,
+        name=f"{NAME}_MedianModel", base_dir=MODELS_DIR, alg=MedianDistributionAlgorithm
     ),
 ]
 
 # assessors
 ASSESSORS = [
-    TestSetAssessor(scoring="roc_auc", monitor=NullMonitor(), use_proba=True),
-    TestSetAssessor(
-        scoring="matthews_corrcoef", monitor=NullMonitor(), use_proba=False
-    ),
-    TestSetAssessor(scoring="recall", monitor=NullMonitor(), use_proba=False),
-    TestSetAssessor(scoring="precision", monitor=NullMonitor(), use_proba=False),
-    TestSetAssessor(scoring="f1", monitor=NullMonitor(), use_proba=False),
+    TestSetAssessor(scoring="r2", monitor=NullMonitor()),
+    TestSetAssessor(root_mean_squared_error, monitor=NullMonitor()),
 ]
 
 # benchmark settings
