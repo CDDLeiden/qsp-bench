@@ -7,9 +7,8 @@
 Different dependencies are required for different experiments. The following should be sufficient for all experiments:
 
 ```bash
-conda install cudatoolkit=11.1
-pip install -r requirements.txt
-pip install qsprpred==3.0.0[pyboost]
+pip install deepchem # for MoleculeNet data sets
+pip install qsprpred[gpu] # for software dependencies
 ```
 
 ### Run Experiments
@@ -19,3 +18,5 @@ Settings for each experiment is stored as a module under `settings`. You just po
 ```bash
 QSPBENCH_SETTINGS='settings.multitask_reg' python main.py
 ```
+
+Some settings files define other variables that can be used to customize behaviour. Check the settings you intend to run for more details.
