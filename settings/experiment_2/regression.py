@@ -82,24 +82,12 @@ TARGET_PROPS = [
 
 # models
 MODELS = [
-    DNNModel(
-        name=f"{NAME}_DNN",
-        alg=STFullyConnected,
-        base_dir=MODELS_DIR,
-    ),
     SklearnModel(
         name=f"{NAME}_XGBRegressor",
         alg=XGBRegressor,
         base_dir=MODELS_DIR,
         parameters={"n_jobs": 1},
     ),
-    SklearnModel(
-        name=f"{NAME}_XGBRegressor",
-        alg=SVR,
-        base_dir=MODELS_DIR,
-        parameters={"max_iter": 1000},
-    ),
-    SklearnModel(name=f"{NAME}_MLPClassifier", alg=MLPRegressor, base_dir=MODELS_DIR),
     RandomModel(
         name=f"{NAME}_MedianModel", base_dir=MODELS_DIR, alg=MedianDistributionAlgorithm
     ),

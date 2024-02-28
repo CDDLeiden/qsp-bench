@@ -59,25 +59,12 @@ TARGET_PROPS = [
 
 # models
 MODELS = [
-    DNNModel(
-        name=f"{NAME}_DNN",
-        alg=STFullyConnected,
-        base_dir=MODELS_DIR,
-    ),
     SklearnModel(
         name=f"{NAME}_XGBClassifier",
         alg=XGBClassifier,
         base_dir=MODELS_DIR,
         parameters={"n_jobs": 1},
     ),
-    SklearnModel(name=f"{NAME}_GaussianNB", alg=GaussianNB, base_dir=MODELS_DIR),
-    SklearnModel(
-        name=f"{NAME}_SVC",
-        alg=SVC,
-        base_dir=MODELS_DIR,
-        parameters={"probability": True, "max_iter": 1000},
-    ),
-    SklearnModel(name=f"{NAME}_MLPClassifier", alg=MLPClassifier, base_dir=MODELS_DIR),
     RandomModel(
         name=f"{NAME}_RatioModel",
         base_dir=MODELS_DIR,

@@ -6,7 +6,7 @@ from qsprpred.data import ClusterSplit, RandomSplit
 from qsprpred.data.descriptors.fingerprints import MorganFP
 
 START_FRESH = False  # set True to delete all previous outputs
-RESET_MODELS = True  # set True to reset all models
+RESET_MODELS = False  # set True to reset all models
 N_SAMPLES = None  # samples per target to use for benchmarking, use None for all data
 NAME = os.environ["QSPBENCH_SETTINGS"].split(".")[-1]  # name of the benchmark
 NAME = NAME + (f"_{N_SAMPLES}" if N_SAMPLES else "")  # append number of samples
@@ -21,10 +21,11 @@ N_PROC = (
 )  # number of processes to use
 RESULTS_FILE = f"{DATA_DIR}/results.tsv"  # file to store results
 GPUS = (
-    [int(x) for x in os.environ["QSPBENCH_GPUS"].split(",")]
+    [int(x) if x else None for x in os.environ["QSPBENCH_GPUS"].split(",")]
     if "QSPBENCH_GPUS" in os.environ
     else None
 )  # list of GPUs to use
+GPUS = None if GPUS[0] is None else GPUS
 
 # descriptors
 DESCRIPTORS = [
