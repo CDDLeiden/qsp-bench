@@ -8,7 +8,7 @@ Different dependencies are required for different experiments. The following sho
 
 ```bash
 pip install deepchem # for MoleculeNet data sets
-pip install qsprpred[gpu] # for software dependencies
+pip install -r requirements.txt # for software dependencies
 ```
 
 ## Run Experiments
