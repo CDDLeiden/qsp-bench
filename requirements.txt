@@ -146,7 +146,7 @@ python-json-logger==2.0.7
 pytz==2024.1
 PyYAML==6.0.1
 pyzmq==25.1.2
-qsprpred @ git+ssh://git@gitlab.services.universiteitleiden.nl/cdd/QSPRpred.git@ae5d8f770d07e736e65a57cf4d0f9fe787fa4a4b
+qsprpred @ git+https://github.com/CDDLeiden/QSPRpred.git@ae5d8f770d07e736e65a57cf4d0f9fe787fa4a4b
 rdkit==2023.9.4
 referencing==0.33.0
 requests==2.31.0
