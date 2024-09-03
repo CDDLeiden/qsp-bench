@@ -25,7 +25,7 @@ GPUS = (
     if "QSPBENCH_GPUS" in os.environ
     else None
 )  # list of GPUs to use
-GPUS = None if GPUS[0] is None else GPUS
+GPUS = None if GPUS is None else GPUS
 
 # descriptors
 DESCRIPTORS = [
