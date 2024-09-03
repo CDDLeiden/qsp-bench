@@ -9,7 +9,6 @@ Different dependencies are required for different experiments. The following sho
 **Note: In order to ensure compatibility of all software in both experiments, use Python 3.10.**  
 
 ```bash
-pip install deepchem # for MoleculeNet data sets if you plan to run experiment_2 as well
 pip install -r requirements.txt # for software dependencies
 ```
 
