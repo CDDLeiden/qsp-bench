@@ -44,7 +44,6 @@ fonttools==4.45.0
 fqdn==1.5.1
 fsspec==2023.10.0
 future==0.18.3
-gbmt-splits @ git+https://github.com/sohviluukkonen/gbmt-splits@ab8be395149238974f6fb6301473016712df0fbd
 gitdb==4.0.11
 GitPython==3.1.40
 greenlet==3.0.1
@@ -87,9 +86,7 @@ MarkupSafe==2.1.3
 matplotlib==3.8.2
 matplotlib-inline==0.1.6
 mistune==3.0.2
-ml2json @ git+https://github.com/HellevdM/ml2json.git@4383935bd92e6c3108c24835513e341ec7ab1560
 mlchemad==1.5.0
-Mold2-pywrapper @ git+https://github.com/OlivierBeq/Mold2_pywrapper.git@bf10deee103c65508ac9d3be862ead0692906954
 mols2grid==2.0.0
 mordred==1.2.0
 more-itertools==10.2.0
@@ -123,8 +120,7 @@ packaging==23.2
 PaDEL-pywrapper==1.0.4
 pandas==2.1.3
 pandas-flavor==0.6.0
-pandocfilters==1.5.0
-papyrus-scripts @ git+https://github.com/OlivierBeq/Papyrus-scripts.git@e93d3b1e5479b35624d6acd716b7e06dc5725707
+pandocfilters==1.5.1
 parameterized==0.9.0
 parso==0.8.3
 partd==1.4.1
@@ -158,8 +154,6 @@ QtPy==2.4.1
 rdkit==2023.9.1
 referencing==0.32.0
 requests==2.31.0
-rfc3339-validator==0.1.4
-rfc3986-validator==0.1.1
 rpds-py==0.15.2
 scikit-learn==1.4.0
 scipy==1.8.1
